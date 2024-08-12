@@ -1,11 +1,11 @@
 \documentclass [11pt, a4paper, oneside] {article}
 
-\usepackage [T2A] {fontenc}
+\usepackage [T5] {fontenc}
 \usepackage [utf8] {inputenc}
-\usepackage [english, russian, vietnamese] {babel}
+\usepackage [vietnamese] {babel}
 \usepackage {amsmath}
 \usepackage {amssymb}
-\usepackage [vietnamese]{olymp}
+\usepackage [vietnamese] {olymp}
 \usepackage {comment}
 \usepackage {epigraph}
 \usepackage {expdlist}
