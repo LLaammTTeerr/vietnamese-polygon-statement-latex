@@ -376,7 +376,7 @@
         \noindent
         \refstepcounter{problem}
         \textbf{\problemheadfont\textsf{%
-                \ifdefined\ShortProblemTitle\else{\kw@Problem\ \if@arabic\arabic{problem}\else\Alph{problem}\fi.\ }\fi%
+                \ifdefined\ShortProblemTitle\else{\kw@Problem\ \if@arabic\arabic{problem}\else\theproblem\fi.\ }\fi%
                 #1%
                 \ifdefined\DivisionNumber%
                 \if\DivisionNumber2%
@@ -477,6 +477,7 @@
 
 
     \ifdefined\NoExamples\else%
+    \begin{center}
     \begin{tabular}{|l|l|}
         \hline
         \multicolumn{1}{|c|}{\bf\texttt{\InputFileName}}&
@@ -486,6 +487,7 @@
 }{
     \ifdefined\NoExamples\else%
     \end{tabular}
+    \end{center}
     \fi%
 }
 
@@ -494,6 +496,7 @@
     \ttfamily\obeylines\obeyspaces\frenchspacing
     \newcommand{\exmp}[2]{
         \ifdefined\NoExamples\else%
+        \begin{center}
         \begin{tabular}{|c|}
         \hline
         \multicolumn{1}{|c|}{\bf\texttt{\InputFileName}}\\
@@ -509,6 +512,7 @@
         \medskip\end{minipage}\\%
         \hline
         \end{tabular}
+        \end{center}
         \fi%
     }
     \newcommand{\exmpfile}[2]{
@@ -525,7 +529,7 @@
 
 \newenvironment{examplethree}[1][]{
     \s@tm@cr@s#1
-    \ttfamily\obeylines\obeyspaces\frenchspacing
+    \ttfamily\obeyspaces\frenchspacing
     \newcommand{\exmp}[3]{
         \ifdefined\NoExamples\else%
         \begin{minipage}[t]{\exmpthreewidinf}\rightskip=0pt plus 1fill\relax##1\medskip\end{minipage}&
@@ -549,6 +553,7 @@
 
 
     \ifdefined\NoExamples\else%
+    \begin{center}
     \begin{tabular}{|l|l|l|}
         \hline
         \multicolumn{1}{|c|}{\bf\texttt{\InputFileName}}&
@@ -559,6 +564,7 @@
 }{
     \ifdefined\NoExamples\else%
     \end{tabular}
+    \end{center}
     \fi%
 }
 
