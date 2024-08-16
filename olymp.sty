@@ -12,6 +12,7 @@
 
 \newif\if@landscape\@landscapefalse
 \newif\if@russian\@russianfalse
+\newif\if@ukrainian\@ukrainianfalse
 \newif\if@arabic\@arabicfalse
 \newif\if@vietnamese\@vietnamesefalse
 
@@ -20,6 +21,9 @@
 }
 \DeclareOption{russian}{
     \@russiantrue
+}
+\DeclareOption{ukrainian}{
+    \@ukrainiantrue
 }
 \DeclareOption{arabic}{
     \@arabictrue
@@ -128,42 +132,138 @@
 \renewcommand{\leq}{\leqslant}
 \renewcommand{\geq}{\geqslant}
 \else
+\if@ukrainian
+\renewcommand{\le}{\leqslant}
+\renewcommand{\ge}{\geqslant}
+\renewcommand{\leq}{\leqslant}
+\renewcommand{\geq}{\geqslant}
+\else
 \parindent=0mm
 \parskip=1ex
+\fi
 \fi
 
 % -- End of setup sizes --
 
 % -- Setup keywords --
 
-\def\kw@ProblemTutorial{Hướng dẫn giải}
-\def\kw@Problem{Bài}
+\if@russian
+\def\kw@ProblemTutorial{Разбор задачи}
+\def\kw@Problem{Задача}
+\def\kw@ProblemAuthor{Автор:}
+\def\kw@ProblemDeveloper{Разработчик:}
+\def\kw@ProblemOrigin{Источник:}
+\def\kw@InputFileName{Имя входного файла:}
+\def\kw@OutputFileName{Имя выходного файла:}
+\def\kw@TimeLimit{Ограничение по времени:}
+\def\kw@MemoryLimit{Ограничение по памяти:}
+\def\kw@Feedback{Отображение результатов:}
+\def\kw@stdin{стандартный поток ввода}
+\def\kw@stdout{стандартный поток вывода}
+\def\kw@Specification{Спецификация}
+\def\kw@Interaction{Протокол взаимодействия}
+\def\kw@Input{Формат входных данных}
+\def\kw@Output{Формат выходных данных}
+\def\kw@Example{Пример}
+\def\kw@Examples{Примеры}
+\def\kwExampleNotes{Пояснение}
+\def\kw@Explanation{Пояснение к примеру}
+\def\kw@Explanations{Пояснения к примерам}
+\def\kw@Illustration{Иллюстрация}
+\def\kw@Scoring{Система оценки}
+\def\kw@Note{Замечание}
+\def\kw@Notes{Замечания}
+\def\kw@Constraints{Ограничения}
+\def\kw@version{версия}
+\def\kw@revision{ревизия}
+\def\kw@SubtaskOne{Подзадача 1}
+\def\kw@SubtaskTwo{Подзадача 2}
+\def\kw@SubtaskThree{Подзадача 3}
+\def\kw@SubtaskFour{Подзадача 4}
+\def\kw@SubtaskFive{Подзадача 5}
+\def\kw@SubtaskSix{Подзадача 6}
+\def\kw@Subtask{Подзадача}
+\def\kw@points{баллы}
+\def\kw@Page{Страница}
+\def\kw@of{из}
+\def\kw@notstated{не указан}
+\def\kw@IntentionallyBlankPage{Эта страница специально оставлена пустой}
+\def\kw@defaultinputname{тест}
+\def\kw@defaultoutputname{ответ}
+\else
+\if@ukrainian
+\def\kw@ProblemTutorial{Розбір задачі}
+\def\kw@Problem{Задача}
+\def\kw@ProblemAuthor{Автор:}
+\def\kw@ProblemDeveloper{Розробник:}
+\def\kw@ProblemOrigin{Джерело:}
+\def\kw@InputFileName{Назва вхідного файлу:}
+\def\kw@OutputFileName{Назва вихідного файлу:}
+\def\kw@TimeLimit{Ліміт часу:}
+\def\kw@MemoryLimit{Ліміт використання пам'яті:}
+\def\kw@Feedback{Відображення результатів:}
+\def\kw@stdin{стандартний потік вводу}
+\def\kw@stdout{стандартний потік виводу}
+\def\kw@Specification{Специфікація}
+\def\kw@Interaction{Протокол взаємодії}
+\def\kw@Input{Формат вхідних даних}
+\def\kw@Output{Формат вихідних даних}
+\def\kw@Example{Приклад}
+\def\kw@Examples{Приклади}
+\def\kwExampleNotes{Пояснення}
+\def\kw@Explanation{Пояснення до прикладу}
+\def\kw@Explanations{Пояснения до прикладів}
+\def\kw@Illustration{Ілюстрація}
+\def\kw@Scoring{Система оцінки}
+\def\kw@Note{Зауваження}
+\def\kw@Notes{Зауваження}
+\def\kw@Constraints{Обмеження}
+\def\kw@version{версія}
+\def\kw@revision{ревізія}
+\def\kw@SubtaskOne{Підзадача 1}
+\def\kw@SubtaskTwo{Підзадача 2}
+\def\kw@SubtaskThree{Підзадача 3}
+\def\kw@SubtaskFour{Підзадача 4}
+\def\kw@SubtaskFive{Підзадача 5}
+\def\kw@SubtaskSix{Підзадача 6}
+\def\kw@Subtask{Підзадача}
+\def\kw@points{бали}
+\def\kw@Page{Сторінка}
+\def\kw@of{з}
+\def\kw@notstated{не вказано}
+\def\kw@IntentionallyBlankPage{Ця сторінка спеціально залишена порожньою}
+\def\kw@defaultinputname{тест}
+\def\kw@defaultoutputname{відповідь}
+\else
+\if@vietnamese
+\def\kw@ProblemTutorial{Lời giải cho bài toán}
+\def\kw@Problem{Bài toán}
 \def\kw@ProblemAuthor{Tác giả:}
-\def\kw@ProblemDeveloper{Người soạn đề:}
+\def\kw@ProblemDeveloper{Developer:}
 \def\kw@ProblemOrigin{Nguồn bài:}
-\def\kw@InputFileName{Đầu vào:}
-\def\kw@OutputFileName{Đầu ra:}
+\def\kw@InputFileName{Tệp vào:}
+\def\kw@OutputFileName{Tệp ra:}
 \def\kw@TimeLimit{Giới hạn thời gian:}
 \def\kw@MemoryLimit{Giới hạn bộ nhớ:}
-\def\kw@Feedback{Phản hồi:}
-\def\kw@stdin{stdin}
-\def\kw@stdout{stdout}
-\def\kw@Specification{Làm rõ}
-\def\kw@Interaction{Cách tương tác}
-\def\kw@Input{Dữ liệu vào}
-\def\kw@Output{Dữ liệu ra}
+\def\kw@Feedback{Feedback:}
+\def\kw@stdin{Đầu vào chuẩn}
+\def\kw@stdout{Đầu ra chuẩn}
+\def\kw@Specification{Specification}
+\def\kw@Interaction{Giao thức tương tác}
+\def\kw@Input{Đầu vào}
+\def\kw@Output{Đầu ra}
 \def\kw@Example{Ví dụ}
-\def\kw@Examples{Các ví dụ}
-\def\kwExampleNotes{Ghi chú}
+\def\kw@Examples{Ví dụ}
+\def\kwExampleNotes{Chú thích}
 \def\kw@Explanation{Giải thích}
 \def\kw@Explanations{Giải thích}
 \def\kw@Illustration{Minh họa}
-\def\kw@Scoring{Chấm điểm}
-\def\kw@Note{Ghi chú}
-\def\kw@Notes{Ghi chú}
-\def\kw@Constraints{Giới hạn}
-\def\kw@version{Phiên bản}
-\def\kw@revision{Sửa đổi}
+\def\kw@Scoring{Điểm}
+\def\kw@Note{Chú thích}
+\def\kw@Notes{Chú thích}
+\def\kw@Constraints{Giơi hạn}
+\def\kw@version{version}
+\def\kw@revision{revision}
 \def\kw@SubtaskOne{Subtask 1}
 \def\kw@SubtaskTwo{Subtask 2}
 \def\kw@SubtaskThree{Subtask 3}
@@ -171,13 +271,59 @@
 \def\kw@SubtaskFive{Subtask 5}
 \def\kw@SubtaskSix{Subtask 6}
 \def\kw@Subtask{Subtask}
-\def\kw@points{điểm}
+\def\kw@points{Điểm}
 \def\kw@Page{Trang}
 \def\kw@of{trên}
-\def\kw@notstated{N/A}
-\def\kw@IntentionallyBlankPage{Trang này được cố ý để trống.}
+\def\kw@notstated{not stated}
+\def\kw@IntentionallyBlankPage{Trang này được chủ ý bỏ trống}
 \def\kw@defaultinputname{test}
 \def\kw@defaultoutputname{answer}
+\else
+\def\kw@ProblemTutorial{Problem Tutorial}
+\def\kw@Problem{Problem}
+\def\kw@ProblemAuthor{Author:}
+\def\kw@ProblemDeveloper{Developer:}
+\def\kw@ProblemOrigin{Origin:}
+\def\kw@InputFileName{Input file:}
+\def\kw@OutputFileName{Output file:}
+\def\kw@TimeLimit{Time limit:}
+\def\kw@MemoryLimit{Memory limit:}
+\def\kw@Feedback{Feedback:}
+\def\kw@stdin{standard input}
+\def\kw@stdout{standard output}
+\def\kw@Specification{Specification}
+\def\kw@Interaction{Interaction Protocol}
+\def\kw@Input{Input}
+\def\kw@Output{Output}
+\def\kw@Example{Example}
+\def\kw@Examples{Examples}
+\def\kwExampleNotes{Notes}
+\def\kw@Explanation{Explanation}
+\def\kw@Explanations{Explanations}
+\def\kw@Illustration{Illustration}
+\def\kw@Scoring{Scoring}
+\def\kw@Note{Note}
+\def\kw@Notes{Notes}
+\def\kw@Constraints{Constraints}
+\def\kw@version{version}
+\def\kw@revision{revision}
+\def\kw@SubtaskOne{Subtask 1}
+\def\kw@SubtaskTwo{Subtask 2}
+\def\kw@SubtaskThree{Subtask 3}
+\def\kw@SubtaskFour{Subtask 4}
+\def\kw@SubtaskFive{Subtask 5}
+\def\kw@SubtaskSix{Subtask 6}
+\def\kw@Subtask{Subtask}
+\def\kw@points{points}
+\def\kw@Page{Page}
+\def\kw@of{of}
+\def\kw@notstated{not stated}
+\def\kw@IntentionallyBlankPage{This page is intentionally left blank}
+\def\kw@defaultinputname{test}
+\def\kw@defaultoutputname{answer}
+\fi
+\fi
+\fi
 
 \afterproblemhead=3mm
 \afterconstraints=2mm
@@ -188,7 +334,7 @@
 \clearpage
 \ifintentionallyblankpages
   \ifodd\value{page}
-  \else        
+  \else
      \vspace*{\fill}
      \begin{center}
      \problemheadfont\kw@IntentionallyBlankPage
@@ -196,7 +342,7 @@
      \vspace*{\fill}
      \clearpage
   \fi
-\fi       
+\fi
 }
 \newcommand{\problemtextfont}{\normalsize}
 \newcommand{\beforeproblemsectioncaption}{\smallbreak\smallskip}
