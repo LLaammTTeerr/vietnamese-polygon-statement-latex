@@ -8,6 +8,7 @@
 \ProvidesPackage{olymp}
 
 \usepackage{verbatim}
+\usepackage{ifthen}
 
 
 \newif\if@landscape\@landscapefalse
@@ -250,8 +251,8 @@
 \def\kw@stdout{Đầu ra chuẩn}
 \def\kw@Specification{Specification}
 \def\kw@Interaction{Giao thức tương tác}
-\def\kw@Input{Đầu vào}
-\def\kw@Output{Đầu ra}
+\def\kw@Input{Dữ liệu vào}
+\def\kw@Output{Dữ liệu ra}
 \def\kw@Example{Ví dụ}
 \def\kw@Examples{Ví dụ}
 \def\kwExampleNotes{Chú thích}
@@ -261,7 +262,7 @@
 \def\kw@Scoring{Điểm}
 \def\kw@Note{Chú thích}
 \def\kw@Notes{Chú thích}
-\def\kw@Constraints{Giơi hạn}
+\def\kw@Constraints{Giới hạn}
 \def\kw@version{version}
 \def\kw@revision{revision}
 \def\kw@SubtaskOne{Subtask 1}
@@ -276,7 +277,7 @@
 \def\kw@of{trên}
 \def\kw@notstated{not stated}
 \def\kw@IntentionallyBlankPage{Trang này được chủ ý bỏ trống}
-\def\kw@defaultinputname{test}
+\def\kw@defaultinputname{input}
 \def\kw@defaultoutputname{answer}
 \else
 \def\kw@ProblemTutorial{Problem Tutorial}
@@ -627,7 +628,7 @@
     \begin{tabular}{|l|l|}
         \hline
         \multicolumn{1}{|c|}{\bf\texttt{\InputFileName}}&
-        \multicolumn{1}{|c|}{\bf\texttt{\OutputFileName}}\\
+        \multicolumn{1}{c|}{\bf\texttt{\OutputFileName}}\\
         \hline
     \fi%
 }{
@@ -748,7 +749,15 @@
 \newcommand{\thecontestdate}{Once upon a time}
 \newcommand{\therevision}{undefined}
 
-\DeclareRobustCommand{\contestname}{\thecontestname\par\thecontestlocation\unskip, \thecontestdate}
+\DeclareRobustCommand{\contestname}{%
+  \thecontestname\par
+  \@ifnotempty{\thecontestlocation}{%
+    \thecontestlocation%
+    \@ifnotempty{\thecontestdate}{%
+      \thecontestdate%
+    }%
+  }%
+}
 
 \DeclareRobustCommand{\contest}[3]{
     \renewcommand{\thecontestname}{#1}
