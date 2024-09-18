@@ -749,15 +749,7 @@
 \newcommand{\thecontestdate}{Once upon a time}
 \newcommand{\therevision}{undefined}
 
-\DeclareRobustCommand{\contestname}{%
-  \thecontestname\par
-  \@ifnotempty{\thecontestlocation}{%
-    \thecontestlocation%
-    \@ifnotempty{\thecontestdate}{%
-      \thecontestdate%
-    }%
-  }%
-}
+\DeclareRobustCommand{\contestname}{\thecontestname\par\thecontestlocation\unskip, \thecontestdate}
 
 \DeclareRobustCommand{\contest}[3]{
     \renewcommand{\thecontestname}{#1}
