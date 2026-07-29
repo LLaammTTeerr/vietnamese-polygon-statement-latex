@@ -24,14 +24,16 @@ jobs:
           apt-get update
           apt-get install -y --no-install-recommends poppler-utils python3
 
-      # texlive/texlive:latest does not ship Source Sans Pro, which the package
-      # uses for every heading. Locally it arrives via Debian's
-      # texlive-fonts-extra, which is why this only ever failed in CI: 14 of 17
-      # cases died with "The font SourceSansPro-Regular cannot be found".
+      # The package is `sourcesans`, NOT `sourcesanspro`: Adobe renamed the
+      # family to Source Sans 3 and TeX Live followed, so `tlmgr install
+      # sourcesanspro` fails with "package not present in repository". The
+      # files it provides are SourceSans3-*, which is why vnolymp-style.def
+      # accepts either naming.
       #
       # xcharter is for the test suite, not the package: selftest-missing-glyph
       # feeds XCharter to the missing-glyph detector precisely because it lacks
-      # the Vietnamese hook-above characters.
+      # the Vietnamese hook-above characters. It is already in the image, but
+      # naming it here keeps the requirement explicit.
       - name: Install TeX Live fonts not in the image
         run: |
           # tlmgr refuses to install when the image's TeX Live is older than the
@@ -43,12 +45,12 @@ jobs:
           # The install itself is NOT tolerated. A swallowed failure made this
           # step go green while achieving nothing, so "installed but still
           # absent" and "install failed" looked identical from the public API.
-          tlmgr install sourcesanspro xcharter
+          tlmgr install sourcesans xcharter
 
           # Refresh the filename database so kpsewhich sees the new files, and
           # prove the font actually arrived rather than assuming it did.
           mktexlsr
-          kpsewhich SourceSansPro-Regular.otf
+          kpsewhich SourceSans3-Regular.otf
 
       # These three steps EXIT NON-ZERO on anything missing. An earlier version
       # printed "MISSING" and exited 0, so the step went green and its success
@@ -62,10 +64,24 @@ jobs:
           : > /tmp/missing-fonts
           for f in lmroman10-regular.otf lmroman10-bold.otf lmroman10-italic.otf \
                    lmmono10-regular.otf lmmonolt10-bold.otf latinmodern-math.otf \
-                   SourceSansPro-Regular.otf SourceSansPro-Semibold.otf \
-                   SourceSansPro-Bold.otf XCharter-Roman.otf; do
+                   XCharter-Roman.otf; do
             if kpsewhich "$f" >/dev/null; then echo "ok      $f"
             else echo "MISSING $f"; echo "$f" >> /tmp/missing-fonts; miss=1; fi
+          done
+
+          # Source Sans ships as SourceSans3-* on current TeX Live and
+          # SourceSansPro-* on older ones. Either satisfies the package, so
+          # each face is checked against both names.
+          for w in Regular Semibold Bold; do
+            if kpsewhich "SourceSans3-$w.otf" >/dev/null; then
+              echo "ok      SourceSans3-$w.otf"
+            elif kpsewhich "SourceSansPro-$w.otf" >/dev/null; then
+              echo "ok      SourceSansPro-$w.otf (legacy naming)"
+            else
+              echo "MISSING SourceSans3-$w.otf and SourceSansPro-$w.otf"
+              echo "SourceSans-$w" >> /tmp/missing-fonts
+              miss=1
+            fi
           done
           exit $miss
 

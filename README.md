@@ -16,20 +16,29 @@ A rewrite of this repository's Vietnamese fork of
 - TeX Live 2023 or newer with these packages: `tcolorbox`, `fvextra`,
   `expkv-def`, `unicode-math`, `hhline`, `tabularx`, `colortbl`, `lastpage`,
   `microtype`, `fancyhdr`, `etoolbox`, `xstring`, plus the **Latin Modern**
-  and **Source Sans Pro** font families.
+  and **Source Sans** font families.
 
-On Debian or Ubuntu, `texlive-full` covers everything;
-`texlive-fonts-extra` is the package that supplies Source Sans Pro.
+Source Sans ships under two names, and vnolymp accepts either:
 
-On a plain TeX Live installation — including the `texlive/texlive` Docker
-image, which does **not** ship it — install it with:
+| Files | TeX Live package | Where |
+|---|---|---|
+| `SourceSans3-*` | `sourcesans` | current TeX Live |
+| `SourceSansPro-*` | `sourcesanspro` | older TeX Live, Debian's `texlive-fonts-extra` |
+
+Adobe renamed the family to Source Sans 3 and TeX Live followed, so
+`tlmgr install sourcesanspro` now fails with *"package not present in
+repository"*. On a plain TeX Live installation — including the
+`texlive/texlive` Docker image, which ships neither — use:
 
 ```
-tlmgr install sourcesanspro
+tlmgr install sourcesans
 ```
 
-The package checks for it at load time and says so, rather than leaving you
-with fontspec's "cannot be found" error.
+On Debian or Ubuntu, `texlive-full` covers everything, and
+`texlive-fonts-extra` is what supplies the family.
+
+vnolymp checks for both names at load time and names the fix, rather than
+leaving you with fontspec's "cannot be found" error.
 
 Running the test suite additionally needs `poppler-utils` (for `pdftotext`
 and `pdfinfo`), `python3`, and the `xcharter` font — the last is deliberate:
