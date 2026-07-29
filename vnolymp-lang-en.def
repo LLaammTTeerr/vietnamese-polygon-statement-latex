@@ -53,4 +53,10 @@
 \vnolymp@lang{table.points}{Points}
 \vnolymp@lang{table.constraints}{Constraints}
 
+%% Cover overview table -------------------------------------------------------
+
+\vnolymp@lang{cover.name}{Name}
+\vnolymp@lang{cover.time}{Time}
+\vnolymp@lang{cover.memory}{Memory}
+
 \endinput

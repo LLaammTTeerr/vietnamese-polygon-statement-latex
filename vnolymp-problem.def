@@ -184,6 +184,48 @@
 
 \newcounter{vnolympproblem}
 
+%% ---------------------------------------------------------------------------
+%% Cover-page overview
+%%
+%% The cover lists every problem, but is typeset before any of them. Each
+%% problem therefore records its metadata in the .aux file, which LaTeX reads
+%% back at \begin{document} — so the cover shows the PREVIOUS run's data and
+%% the document needs two passes to settle, exactly as \pageref does.
+%%
+%% Raw values and legacy pre-formatted strings are both written, and the
+%% choice between them is made at render time. Formatting here would mean
+%% expanding \vnolymp@kw inside \protected@write's \edef, which is fragile.
+%% ---------------------------------------------------------------------------
+
+\newcommand{\vnolymp@coverrows}{}
+
+% #1 index  #2 title  #3 time  #4 timetext  #5 memory  #6 memorytext  #7 points
+\newcommand{\vnolymp@problementry}[7]{%
+  \g@addto@macro\vnolymp@coverrows{%
+    #1 & #2 &
+    \vnolymp@coverlimit{#3}{#4}{\vnolymp@timename} &
+    \vnolymp@coverlimit{#5}{#6}{\vnolymp@memname} &
+    #7\\%
+  }%
+}
+
+% Arguments arrive as literal token lists here, not as macros, so \ifblank is
+% the correct test — unlike in \vnolymp@buildpanel, where they are macros.
+\newcommand{\vnolymp@coverlimit}[3]{%
+  \ifblank{#2}{\ifblank{#1}{---}{#3{#1}}}{#2}%
+}
+
+\newcommand{\vnolymp@recordproblem}[1]{%
+  \protected@write\@auxout{}{%
+    \string\vnolymp@problementry
+      {\arabic{vnolympproblem}}%
+      {\unexpanded{#1}}%
+      {\vnolymp@p@time}{\vnolymp@p@timetext}%
+      {\vnolymp@p@memory}{\vnolymp@p@memorytext}%
+      {\vnolymp@p@points}%
+  }%
+}
+
 % Shared by both entry points: the key-value environment below, and the legacy
 % positional form in vnolymp-compat.def. Keys must already be set.
 \newcommand{\vnolymp@problem@start}[1]{%
@@ -205,6 +247,7 @@
     \vnolymp@buildpanel
     \vnolymp@renderpanel{\vnolymp@panelrows}%
   \fi
+  \vnolymp@recordproblem{#1}%
 }
 
 \newcommand{\vnolymp@problem@finish}{%

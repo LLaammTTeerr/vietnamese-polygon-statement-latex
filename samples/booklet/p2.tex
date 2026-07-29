@@ -1,0 +1,31 @@
+\begin{problem}[
+  input = unblock.inp, output = unblock.out,
+  time = 2, memory = 512, points = 100,
+  author = {Phan Bình Nguyên Lâm},
+]{Xếp gỗ}
+
+Bạn được cho một bảng gồm $n$ hàng và $m$ cột, được chất đầy bởi những thanh
+gỗ kích thước $1 \times 2$ hoặc $2 \times 1$, chỉ chừa lại một ô trống.
+
+\InputFile
+Dòng đầu tiên gồm hai số nguyên $n$ và $m$. Tiếp theo là $n$ dòng mô tả bảng,
+trong đó \texttt{H} là thanh gỗ ngang, \texttt{V} là thanh gỗ dọc và
+\texttt{O} là ô trống.
+
+\OutputFile
+Một số nguyên duy nhất là số điểm cao nhất có thể đạt được.
+
+\Constraints
+$1 \le n, m \le 1000$ và $|a_{x,y}| \le 10^9$.
+
+\begin{subtasks}
+  \subtask{30}{$n, m \le 20$}
+  \subtask{35}{$a_{x,y} \ge 0$ với mọi $x, y$}
+  \subtask{35}{Không có ràng buộc gì thêm}
+\end{subtasks}
+
+\Examples
+\begin{example}
+\exmpfile{ex2.in}{ex2.out}%
+\end{example}
+\end{problem}

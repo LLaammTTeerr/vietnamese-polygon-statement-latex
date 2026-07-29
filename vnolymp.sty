@@ -10,7 +10,7 @@
 %% depends on is OpenType — see spec §3.1.
 %%
 %% Load order matters and is enforced here:
-%%   options → language → style → problem → example → compat
+%%   options → language → problem → example → style → compat
 %%
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{vnolymp}[2026/07/29 v0.1 Vietnamese contest statements]
@@ -138,9 +138,17 @@
 %% Modules
 %% ---------------------------------------------------------------------------
 
-\InputIfFileExists{vnolymp-style.def}{}{}
+% Order matters and is not arbitrary:
+%
+%   problem/example declare their visual hooks with \providecommand, giving
+%   plain unstyled defaults so the package is testable on its own.
+%   style REPLACES those hooks with \renewcommand, so it must load after the
+%   modules that declare them.
+%   compat redefines the problem environment to accept the legacy syntax, so
+%   it loads last of all.
 \InputIfFileExists{vnolymp-problem.def}{}{}
 \InputIfFileExists{vnolymp-example.def}{}{}
+\InputIfFileExists{vnolymp-style.def}{}{}
 \InputIfFileExists{vnolymp-compat.def}{}{}
 
 \endinput

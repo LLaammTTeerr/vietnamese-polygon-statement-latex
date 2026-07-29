@@ -76,4 +76,10 @@
 \vnolymp@lang{table.points}{Điểm}
 \vnolymp@lang{table.constraints}{Ràng buộc}
 
+%% Cover overview table -------------------------------------------------------
+
+\vnolymp@lang{cover.name}{Tên bài}
+\vnolymp@lang{cover.time}{Thời gian}
+\vnolymp@lang{cover.memory}{Bộ nhớ}
+
 \endinput

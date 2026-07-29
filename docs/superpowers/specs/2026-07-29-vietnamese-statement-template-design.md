@@ -409,9 +409,13 @@ Libertinus Math.
   semibold, `Bài N. Tên bài` flush left, points flush right. In `print` mode:
   13 % black fill, black text. (The mockup that informed this design showed a
   lettered `A.` index; the author subsequently chose numbering — see §5.1.)
-- **Limits panel** — tinted box beneath the header, a genuine 2×2 `tabular`
-  grid. The specimen exposed that `\hfill` strands the right-hand label against
-  its own value; alignment must be tabular, not glue.
+- **Limits panel** — tinted box beneath the header, a `tabular` of label/value
+  rows, one row per supplied key, ordered time, memory, input, output, author,
+  origin. Alignment must be tabular, not glue: an early specimen used `\hfill`
+  and stranded the right-hand label against its own value.
+  (An earlier draft specified a 2×2 grid. The panel preview the author later
+  approved is the vertical list described here, which also degrades better when
+  only some keys are supplied.)
 - **Section headings** — accent-coloured left bar plus Source Sans semibold, no
   numbering.
 - **Samples** — `tcolorbox` with tinted title rows, **with line wrapping

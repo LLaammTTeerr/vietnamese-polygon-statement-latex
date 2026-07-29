@@ -96,9 +96,16 @@ for dir in "${CASES[@]}"; do
              ! -name 'preamble' ! -name 'engine' \
              -exec cp {} "$CASE_BUILD/" \;
 
-        ( cd "$CASE_BUILD" && "$engine" -interaction=nonstopmode \
-              -halt-on-error doc.tex >engine.stdout 2>&1 )
-        CASE_EXIT=$?
+        # Twice, as any real build does. The footer's "Trang 3 trên 12" needs
+        # \pageref of a label set at end of document, which is undefined on the
+        # first pass. Assertions read the second pass's log.
+        CASE_EXIT=0
+        for pass in 1 2; do
+            ( cd "$CASE_BUILD" && "$engine" -interaction=nonstopmode \
+                  -halt-on-error doc.tex >"engine.pass$pass.log" 2>&1 )
+            CASE_EXIT=$?
+            [[ "$CASE_EXIT" -eq 0 ]] || break
+        done
 
         CASE_PDF="$CASE_BUILD/doc.pdf"
         CASE_LOG="$CASE_BUILD/doc.log"

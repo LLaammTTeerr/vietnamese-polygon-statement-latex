@@ -1,0 +1,376 @@
+%%
+%% vnolymp-style.def — fonts, colour, geometry, and every visual component.
+%%
+%% This module owns PRESENTATION only. It contains no logic and no prose: it
+%% replaces the \vnolymp@render... hooks that vnolymp-problem.def and
+%% vnolymp-example.def declare with \providecommand, and reads all wording
+%% through \vnolymp@kw.
+%%
+%% Requires LuaLaTeX.
+%%
+\ProvidesFile{vnolymp-style.def}[2026/07/29 Visual design for vnolymp]
+
+\RequirePackage{fontspec}
+\RequirePackage{unicode-math}
+\RequirePackage{xcolor}
+% \rowcolor lives in colortbl, which xcolor loads only under its `table`
+% option. Required explicitly so the subtask table's tinted header row does
+% not depend on some other package having requested it first.
+\RequirePackage{colortbl}
+\RequirePackage{tcolorbox}
+\tcbuselibrary{skins}
+\RequirePackage{fancyhdr}
+\RequirePackage{graphicx}
+\RequirePackage{array}
+\RequirePackage{tabularx}
+\RequirePackage{microtype}
+\RequirePackage[
+  a4paper,
+  top        = 24mm,
+  bottom     = 22mm,
+  left       = 20mm,
+  right      = 20mm,
+  headheight = 15pt,
+  headsep    = 7mm,
+  footskip   = 12mm,
+]{geometry}
+
+%% ---------------------------------------------------------------------------
+%% Fonts
+%%
+%% Source Serif / Sans / Code Pro. Chosen because all three cover the complete
+%% Vietnamese precomposed set with zero missing glyphs, verified by compiling
+%% all 134 characters and inspecting the log. XCharter, a strong candidate on
+%% other grounds, is missing the entire hook-above (dấu hỏi) tone class and
+%% renders it as tofu; DejaVu Sans Mono is missing 46 characters. See spec
+%% §3.1, and tests/cases/selftest-missing-glyph.
+%% ---------------------------------------------------------------------------
+
+\setmainfont{SourceSerifPro-Regular.otf}[
+  BoldFont       = SourceSerifPro-Bold.otf,
+  ItalicFont     = SourceSerifPro-RegularIt.otf,
+  BoldItalicFont = SourceSerifPro-BoldIt.otf,
+  Ligatures      = TeX,
+]
+
+\setsansfont{SourceSansPro-Regular.otf}[
+  BoldFont       = SourceSansPro-Semibold.otf,
+  ItalicFont     = SourceSansPro-RegularIt.otf,
+  BoldItalicFont = SourceSansPro-SemiboldIt.otf,
+  Ligatures      = TeX,
+]
+
+%% Ligatures=TeX is deliberately ABSENT here, and fontspec applies none by
+%% default.
+%%
+%% Monospace exists to show literal characters. With TeX ligatures a backtick
+%% silently becomes a curly quote, so the font could never display one — which
+%% fails the moment a statement quotes shell syntax, a C string literal, or
+%% Markdown. Prose-level quoting belongs in the surrounding serif, which does
+%% have them enabled, so `like this' still yields curly quotes in body text.
+\setmonofont{SourceCodePro-Regular.otf}[
+  BoldFont   = SourceCodePro-Semibold.otf,
+  ItalicFont = SourceCodePro-RegularIt.otf,
+  Scale      = MatchLowercase,
+]
+
+\newfontfamily\vnolymp@ui{SourceSansPro-Semibold.otf}[Ligatures = TeX]
+
+%% Mathematics.
+%%
+%% Source Serif has no matching math font, so STIX Two supplies the symbols
+%% while latin letters and digits are taken from the body font. Nearly all
+%% mathematics in a contest statement is variables, subscripts and powers of
+%% ten ($n$, $a_i$, $10^5$), and taking those glyphs from the body font makes
+%% inline maths sit in the prose instead of beside it.
+\setmathfont{STIXTwoMath-Regular.otf}
+\setmathfont{SourceSerifPro-Regular.otf}[range = {\mathup/{latin,Latin,num}}]
+\setmathfont{SourceSerifPro-RegularIt.otf}[range = {\mathit/{latin,Latin}}]
+\setmathfont{SourceSerifPro-Bold.otf}[range = {\mathbfup/{latin,Latin,num}}]
+
+%% ---------------------------------------------------------------------------
+%% Colour
+%%
+%% One accent, and a print mode that replaces it with greys.
+%%
+%% #A8122C converts to 51/255 in greyscale and carries white text at 7.53:1,
+%% comfortably past WCAG AA, so a photocopied booklet stays legible. Print mode
+%% exists anyway, for when the copier is worse than expected.
+%% ---------------------------------------------------------------------------
+
+\definecolor{vnolympAccent}{HTML}{A8122C}
+\definecolor{vnolympInk}{HTML}{1A1A1A}
+
+\ifvnolymp@color
+  \colorlet{vnolymp@head@bg}{vnolympAccent}
+  \colorlet{vnolymp@head@fg}{white}
+  \colorlet{vnolymp@panel@bg}{vnolympAccent!6}
+  \colorlet{vnolymp@panel@rule}{vnolympAccent!30}
+  \colorlet{vnolymp@panel@label}{vnolympAccent}
+  \colorlet{vnolymp@mark}{vnolympAccent}
+  \colorlet{vnolymp@sample@bg}{vnolympAccent!5}
+  \colorlet{vnolymp@sample@rule}{vnolympAccent!25}
+  \colorlet{vnolymp@table@head}{vnolympAccent!12}
+\else
+  \colorlet{vnolymp@head@bg}{black!13}
+  \colorlet{vnolymp@head@fg}{black}
+  \colorlet{vnolymp@panel@bg}{black!4}
+  \colorlet{vnolymp@panel@rule}{black!25}
+  \colorlet{vnolymp@panel@label}{black!55}
+  \colorlet{vnolymp@mark}{black!60}
+  \colorlet{vnolymp@sample@bg}{black!4}
+  \colorlet{vnolymp@sample@rule}{black!25}
+  \colorlet{vnolymp@table@head}{black!10}
+\fi
+
+\color{vnolympInk}
+
+%% ---------------------------------------------------------------------------
+%% Paragraphs
+%%
+%% Blocks separated by space rather than indented. A statement is a sequence of
+%% short, self-contained paragraphs interleaved with headings and displays, and
+%% first-line indentation reads as noise in that setting.
+%% ---------------------------------------------------------------------------
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.65\baselineskip plus 0.2\baselineskip minus 0.1\baselineskip}
+
+%% ---------------------------------------------------------------------------
+%% Problem header
+%% ---------------------------------------------------------------------------
+
+\renewcommand{\vnolymp@renderheader}[3]{%
+  \begin{tcolorbox}[
+    colback      = vnolymp@head@bg,
+    colframe     = vnolymp@head@bg,
+    sharp corners,
+    boxrule      = 0pt,
+    left         = 3.5mm, right = 3.5mm,
+    top          = 2mm,   bottom = 2mm,
+    enlarge left by  = 0mm,
+    width        = \linewidth,
+  ]
+    \color{vnolymp@head@fg}\vnolymp@ui\large
+    \vnolymp@kw{word.problem}~#1. #2%
+    \ifblank{#3}{}{\hfill #3~\vnolymp@kw{word.points}}%
+  \end{tcolorbox}%
+  \par
+}
+
+%% ---------------------------------------------------------------------------
+%% Limits panel
+%%
+%% Label/value rows, one per supplied key. Labels in small sans caps, values in
+%% the body face so a filename in monospace stands out as a filename.
+%% ---------------------------------------------------------------------------
+
+\renewcommand{\vnolymp@renderpanel}[1]{%
+  \begin{tcolorbox}[
+    colback   = vnolymp@panel@bg,
+    colframe  = vnolymp@panel@rule,
+    sharp corners,
+    boxrule   = 0.4pt,
+    left      = 3.5mm, right = 3.5mm,
+    top       = 2mm,   bottom = 2mm,
+    width     = \linewidth,
+  ]
+    \setlength{\parskip}{0pt}%
+    \begin{tabular}{@{}>{\vnolymp@ui\footnotesize\color{vnolymp@panel@label}}l@{\hspace{2em}}l@{}}
+      #1
+    \end{tabular}%
+  \end{tcolorbox}%
+  \par
+}
+
+%% ---------------------------------------------------------------------------
+%% Section headings
+%%
+%% An accent bar rather than a rule or a number. Statements have few sections
+%% and numbering them adds nothing a reader uses.
+%% ---------------------------------------------------------------------------
+
+\renewcommand{\vnolymp@sectionhead}[1]{%
+  \par\addvspace{0.9\baselineskip}%
+  \noindent
+  {\color{vnolymp@mark}\rule[-0.5mm]{1.1mm}{3.6mm}}\hspace{1.5mm}%
+  {\vnolymp@ui\large #1}%
+  \par\nopagebreak\addvspace{0.2\baselineskip}%
+}
+
+%% ---------------------------------------------------------------------------
+%% Subtask table
+%% ---------------------------------------------------------------------------
+
+% tabularx, not tabular: the constraints column absorbs the slack so the table
+% fills its frame exactly. With a fixed-width column the tinted header row
+% stopped short of the box edge, leaving a visible ledge.
+\renewcommand{\vnolymp@rendersubtasks}[1]{%
+  \par\nopagebreak\noindent
+  \begin{tcolorbox}[
+    colback   = white,
+    colframe  = vnolymp@panel@rule,
+    sharp corners,
+    boxrule   = 0.4pt,
+    left      = 0mm, right = 0mm, top = 0mm, bottom = 0mm,
+    width     = \linewidth,
+  ]
+    \setlength{\parskip}{0pt}%
+    \renewcommand{\arraystretch}{1.35}%
+    \begin{tabularx}{\linewidth}{@{\hspace{3mm}}c@{\hspace{4mm}}r@{\hspace{5mm}}X@{\hspace{3mm}}}
+      \rowcolor{vnolymp@table@head}
+      \vnolymp@ui\footnotesize\vnolymp@kw{table.subtask} &
+      \vnolymp@ui\footnotesize\vnolymp@kw{table.points} &
+      \vnolymp@ui\footnotesize\vnolymp@kw{table.constraints}\\
+      #1
+    \end{tabularx}%
+  \end{tcolorbox}%
+  \par
+}
+
+%% ---------------------------------------------------------------------------
+%% Sample tests
+%% ---------------------------------------------------------------------------
+
+% The group name carries a per-pair counter. `equal height group` is scoped to
+% the whole document, so a single shared name made every sample box in the
+% booklet as tall as the tallest one anywhere in it — a two-line sample beside
+% a six-line one in a different problem came out six lines tall.
+\newcounter{vnolympsamplepair}
+\newtcolorbox{vnolymp@samplebox}[1]{
+  equal height group = vnolymp@s\arabic{vnolympsamplepair},
+  colback   = vnolymp@sample@bg,
+  colframe  = vnolymp@sample@rule,
+  sharp corners,
+  boxrule   = 0.4pt,
+  left      = 2.5mm, right = 2.5mm,
+  top       = 1.5mm, bottom = 1.5mm,
+  title     = {\vnolymp@ui\footnotesize #1},
+  coltitle  = vnolymp@head@fg,
+  colbacktitle = vnolymp@head@bg,
+  fonttitle = \vnolymp@ui\footnotesize,
+  toptitle  = 0.8mm, bottomtitle = 0.8mm,
+  lefttitle = 2.5mm,
+}
+
+% \parskip must be zeroed OUTSIDE the minipages, not inside them. Set inside,
+% the document's paragraph skip has already been contributed at the top of the
+% first box, so the two boxes start at different heights and the pair sits
+% visibly askew.
+\renewcommand{\vnolymp@rendersample}[4]{%
+  \par\addvspace{0.4\baselineskip}%
+  \stepcounter{vnolympsamplepair}%
+  \begingroup
+  \setlength{\parskip}{0pt}%
+  \noindent
+  \begin{minipage}[t]{0.485\linewidth}
+    \begin{vnolymp@samplebox}{#1}#2\end{vnolymp@samplebox}
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.485\linewidth}
+    \begin{vnolymp@samplebox}{#3}#4\end{vnolymp@samplebox}
+  \end{minipage}%
+  \endgroup
+  \par\addvspace{0.4\baselineskip}%
+}
+
+\renewcommand{\vnolymp@renderwidesample}[4]{%
+  \par\addvspace{0.4\baselineskip}%
+  \setlength{\parskip}{0pt}%
+  \begin{vnolymp@samplebox}{#1}#2\end{vnolymp@samplebox}
+  \par\addvspace{0.2\baselineskip}%
+  \begin{vnolymp@samplebox}{#3}#4\end{vnolymp@samplebox}
+  \par\addvspace{0.4\baselineskip}%
+}
+
+%% ---------------------------------------------------------------------------
+%% Running head and foot
+%%
+%% Uses \kw{page.number} and \kw{page.of}, which the package this replaces
+%% defined and then never referenced — it reserved 2cm of head height for a
+%% header that did not exist.
+%% ---------------------------------------------------------------------------
+
+% Via the lastpage package rather than by hand. A plain
+% \AtEndDocument{\clearpage\label{...}} does not work: by then there is no
+% page left to attach the label to, so it never reaches the .aux and the
+% reference stays undefined. lastpage writes the entry directly.
+%
+% The package this replaces inlined its own copy of that trick, while the
+% document preamble separately loaded zref[totpages] for the same purpose.
+\RequirePackage{lastpage}
+\newcommand{\vnolymp@lastpage}{\pageref{LastPage}}
+
+\fancypagestyle{vnolymp}{%
+  \fancyhf{}%
+  \renewcommand{\headrulewidth}{0.4pt}%
+  \renewcommand{\headrule}{%
+    {\color{vnolymp@mark}\hrule height 0.4pt width \headwidth}%
+  }%
+  \fancyhead[L]{\vnolymp@ui\footnotesize\color{black!60}\vnolymp@contest@name}%
+  \fancyhead[R]{\vnolymp@ui\footnotesize\color{black!60}\vnolymp@contest@date}%
+  \fancyfoot[C]{%
+    \vnolymp@ui\footnotesize\color{black!60}
+    \vnolymp@kw{page.number}~\thepage\ \vnolymp@kw{page.of}~\vnolymp@lastpage
+  }%
+}
+
+\ifvnolymp@booklet
+  \pagestyle{vnolymp}
+\else
+  \pagestyle{plain}
+\fi
+
+%% ---------------------------------------------------------------------------
+%% Cover page
+%%
+%% Booklet mode only. \vnolympcover is explicit rather than automatic: a
+%% document may want front matter before it, and silently emitting a page is
+%% the kind of surprise that costs a reprint.
+%% ---------------------------------------------------------------------------
+
+\newcommand{\vnolympcover}{%
+  \ifvnolymp@booklet
+    \thispagestyle{empty}%
+    \null\vspace*{0.18\textheight}%
+    {\color{vnolymp@mark}\hrule height 1.2pt}%
+    \vspace{4mm}
+    {\vnolymp@ui\Huge\vnolymp@contest@name\par}
+    \vspace{3mm}
+    {\vnolymp@ui\Large\color{black!60}%
+      \vnolymp@contest@place
+      \ifdefempty{\vnolymp@contest@place}{}{%
+        \ifdefempty{\vnolymp@contest@date}{}{\ \textperiodcentered\ }%
+      }%
+      \vnolymp@contest@date\par}
+    \vspace{4mm}
+    {\color{vnolymp@mark}\hrule height 0.4pt}%
+    \vspace{14mm}
+    \vnolymp@rendercovertable
+    \vfill
+    \clearpage
+  \fi
+}
+
+% Empty on the first pass, since the rows come from the .aux file written by
+% the previous one. Rendering nothing is correct rather than an error: the
+% document simply needs its second pass, which every real build does.
+\newcommand{\vnolymp@rendercovertable}{%
+  \ifdefempty{\vnolymp@coverrows}{}{%
+    \begingroup
+    \setlength{\parskip}{0pt}%
+    \renewcommand{\arraystretch}{1.4}%
+    \noindent
+    \begin{tabularx}{\linewidth}{@{}c@{\hspace{5mm}}X r r r@{}}
+      \rowcolor{vnolymp@table@head}
+      \vnolymp@ui\footnotesize\vnolymp@kw{word.problem} &
+      \vnolymp@ui\footnotesize\vnolymp@kw{cover.name} &
+      \vnolymp@ui\footnotesize\vnolymp@kw{cover.time} &
+      \vnolymp@ui\footnotesize\vnolymp@kw{cover.memory} &
+      \vnolymp@ui\footnotesize\vnolymp@kw{table.points}\\
+      \vnolymp@coverrows
+    \end{tabularx}%
+    \endgroup
+  }%
+}
+
+\endinput

@@ -1,0 +1,38 @@
+\begin{problem}[
+  input = stdin, output = stdout,
+  time = 1, memory = 256, points = 100,
+  origin = {VOI 2026},
+]{Dãy con tăng dài nhất}
+
+Cho một dãy số nguyên $a_1, a_2, \dots, a_n$. Một dãy con của dãy đã cho được
+gọi là \emph{tăng} nếu mỗi phần tử đều lớn hơn phần tử đứng ngay trước nó.
+
+\textbf{Yêu cầu:} Hãy tìm độ dài của dãy con tăng dài nhất.
+
+\InputFile
+\begin{itemize}
+  \item Dòng thứ nhất chứa số nguyên $n$.
+  \item Dòng thứ hai chứa $n$ số nguyên $a_1, a_2, \dots, a_n$.
+\end{itemize}
+
+\OutputFile
+Một số nguyên duy nhất là độ dài của dãy con tăng dài nhất.
+
+\Constraints
+$1 \le n \le 3 \cdot 10^5$ và $1 \le a_i \le 10^9$.
+
+\begin{subtasks}
+  \subtask{30}{$n \le 20$}
+  \subtask{30}{$n \le 2000$}
+  \subtask{40}{Không có ràng buộc gì thêm}
+\end{subtasks}
+
+\Examples
+\begin{example}
+\exmpfile{ex1.in}{ex1.out}%
+\end{example}
+
+\Note
+Dãy con tăng dài nhất là $3, 4, 5$, do đó đáp án bằng $3$. Tổng các phần tử
+được chọn là $9$.
+\end{problem}
