@@ -1,7 +1,9 @@
 build/
 *.aux
 *.log
-*.out
 *.synctex.gz
 *.fdb_latexmk
 *.fls
+# LaTeX hyperref bookmarks. Note the leading slash and the samples exception:
+# sample expected-output files are also named *.out and must be tracked.
+/*.out
