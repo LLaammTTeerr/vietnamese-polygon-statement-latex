@@ -47,4 +47,10 @@
 \vnolymp@lang{page.of}{of}
 \vnolymp@lang{page.blank}{This page is intentionally left blank}
 
+%% Subtask table ------------------------------------------------------------
+
+\vnolymp@lang{table.subtask}{Subtask}
+\vnolymp@lang{table.points}{Points}
+\vnolymp@lang{table.constraints}{Constraints}
+
 \endinput

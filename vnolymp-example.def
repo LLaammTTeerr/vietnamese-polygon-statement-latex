@@ -1,0 +1,114 @@
+%%
+%% vnolymp-example.def — sample test blocks.
+%%
+%% Structure only; vnolymp-style.def supplies the visual treatment through the
+%% \vnolymp@rendersample hook.
+%%
+\ProvidesFile{vnolymp-example.def}[2026/07/29 Sample tests for vnolymp]
+
+\RequirePackage{fvextra}
+
+%% Sample data is verbatim and must reproduce byte for byte.
+%%
+%% breaklines/breakanywhere fix a real defect: the old package typeset samples
+%% with \verbatiminput inside a fixed-width tabular minipage, which cannot
+%% wrap, so any sample line longer than the column silently ran past the
+%% margin. The break symbol is deliberately left visible — an unmarked wrap
+%% would be indistinguishable from a newline, which in sample data changes
+%% what the test means.
+\fvset{
+  breaklines     = true,
+  breakanywhere  = true,
+  fontsize       = \small,
+  xleftmargin    = 0pt,
+  samepage       = false,
+}
+
+%% ---------------------------------------------------------------------------
+%% Render hook — replaced by vnolymp-style.def
+%%
+%% #1 input heading, #2 input body, #3 output heading, #4 output body
+%% ---------------------------------------------------------------------------
+
+\providecommand{\vnolymp@rendersample}[4]{%
+  \par\medskip\noindent
+  \begin{minipage}[t]{0.48\linewidth}
+    {\footnotesize\bfseries #1}\par\smallskip
+    \hrule\smallskip
+    #2%
+  \end{minipage}\hfill
+  \begin{minipage}[t]{0.48\linewidth}
+    {\footnotesize\bfseries #3}\par\smallskip
+    \hrule\smallskip
+    #4%
+  \end{minipage}%
+  \par\medskip
+}
+
+%% ---------------------------------------------------------------------------
+%% Column headings
+%%
+%% The raw I/O name, as the approved design mockup showed: `stdin`/`stdout`,
+%% or the filename when the problem uses files. Deliberately NOT the
+%% translated prose used in the limits panel — a heading over a block of data
+%% should name the stream the way the judge does.
+%% ---------------------------------------------------------------------------
+
+% \ifdefempty rather than \ifblank — see the note in vnolymp-problem.def.
+\newcommand{\vnolymp@sampleinname}{%
+  \ifdefempty{\vnolymp@p@input}{\texttt{stdin}}{\texttt{\vnolymp@p@input}}%
+}
+\newcommand{\vnolymp@sampleoutname}{%
+  \ifdefempty{\vnolymp@p@output}{\texttt{stdout}}{\texttt{\vnolymp@p@output}}%
+}
+
+%% ---------------------------------------------------------------------------
+%% The example environment
+%% ---------------------------------------------------------------------------
+
+% \exmpfile{input-file}{output-file} — the Polygon path. A package export
+% ships sample data as files (example.01, example.01.a), so this reads them
+% rather than requiring them to be pasted into the statement.
+\newcommand{\exmpfile}[2]{%
+  \vnolymp@rendersample
+    {\vnolymp@sampleinname}{\VerbatimInput{#1}}%
+    {\vnolymp@sampleoutname}{\VerbatimInput{#2}}%
+}
+
+% \exmp{...}{...} — inline data, for hand-written statements. Verbatim, so
+% line breaks and spacing in the source are preserved exactly.
+\newenvironment{vnolymp@exmpenv}{}{}
+\newcommand{\exmp}[2]{%
+  \vnolymp@rendersample
+    {\vnolymp@sampleinname}{\begin{Verbatim}#1\end{Verbatim}}%
+    {\vnolymp@sampleoutname}{\begin{Verbatim}#2\end{Verbatim}}%
+}
+
+\newenvironment{example}[1][]{%
+  \par\nobreak
+}{%
+  \par
+}
+
+% examplewide — one sample stacked vertically rather than side by side, for
+% data too wide to sit in half the text block.
+\providecommand{\vnolymp@renderwidesample}[4]{%
+  \par\medskip\noindent
+  {\footnotesize\bfseries #1}\par\smallskip\hrule\smallskip #2%
+  \par\medskip\noindent
+  {\footnotesize\bfseries #3}\par\smallskip\hrule\smallskip #4%
+  \par\medskip
+}
+
+\newenvironment{examplewide}[1][]{%
+  \par\nobreak
+  \renewcommand{\exmpfile}[2]{%
+    \vnolymp@renderwidesample
+      {\vnolymp@sampleinname}{\VerbatimInput{##1}}%
+      {\vnolymp@sampleoutname}{\VerbatimInput{##2}}%
+  }%
+}{%
+  \par
+}
+
+\endinput

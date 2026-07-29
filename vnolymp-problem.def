@@ -1,0 +1,292 @@
+%%
+%% vnolymp-problem.def — the problem environment, section headings, subtasks.
+%%
+%% This module owns STRUCTURE only. Every visual choice is routed through a
+%% \vnolymp@render... hook declared with \providecommand, so vnolymp-style.def
+%% can replace it without touching any logic here. The plain defaults below
+%% are deliberately unstyled: they exist so the package is testable before the
+%% design layer lands.
+%%
+\ProvidesFile{vnolymp-problem.def}[2026/07/29 Problem environment for vnolymp]
+
+\RequirePackage{expkv-def}
+\RequirePackage{etoolbox}
+\RequirePackage{xstring}
+
+%% ---------------------------------------------------------------------------
+%% Problem metadata keys
+%%
+%% Key-value rather than positional. The old \begin{problem} took five
+%% mandatory arguments plus an optional sixth for points, which needed an
+%% \@ifnextchar hack to fake; adding a seventh would have needed another.
+%% ---------------------------------------------------------------------------
+
+\newcommand{\vnolymp@p@input}{}
+\newcommand{\vnolymp@p@output}{}
+\newcommand{\vnolymp@p@time}{}
+\newcommand{\vnolymp@p@memory}{}
+\newcommand{\vnolymp@p@points}{}
+\newcommand{\vnolymp@p@author}{}
+\newcommand{\vnolymp@p@origin}{}
+\newcommand{\vnolymp@p@index}{}
+
+% Pre-formatted limit strings, set only by vnolymp-compat.def. The legacy
+% positional syntax took limits as prose ("1 giây", "256 megabytes") rather
+% than as numbers, so the unit is already present and must not be appended a
+% second time. Not part of the authoring API — new statements pass numbers.
+\newcommand{\vnolymp@p@timetext}{}
+\newcommand{\vnolymp@p@memorytext}{}
+
+\ekvdefinekeys{vnolymp@problem}{
+  store input   = \vnolymp@p@input,
+  store output  = \vnolymp@p@output,
+  store time    = \vnolymp@p@time,
+  store memory  = \vnolymp@p@memory,
+  store points  = \vnolymp@p@points,
+  store author  = \vnolymp@p@author,
+  store origin  = \vnolymp@p@origin,
+  store index   = \vnolymp@p@index,
+}
+
+% Keys are per-problem, so they must be cleared between problems. The old
+% package leaked author/origin across problems and had a typo
+% (\lastproblemdorigin) that meant origin was never restored at all.
+\newcommand{\vnolymp@resetkeys}{%
+  \renewcommand{\vnolymp@p@input}{}%
+  \renewcommand{\vnolymp@p@output}{}%
+  \renewcommand{\vnolymp@p@time}{}%
+  \renewcommand{\vnolymp@p@memory}{}%
+  \renewcommand{\vnolymp@p@points}{}%
+  \renewcommand{\vnolymp@p@author}{}%
+  \renewcommand{\vnolymp@p@origin}{}%
+  \renewcommand{\vnolymp@p@index}{}%
+  \renewcommand{\vnolymp@p@timetext}{}%
+  \renewcommand{\vnolymp@p@memorytext}{}%
+}
+
+%% ---------------------------------------------------------------------------
+%% Value formatting
+%%
+%% The package turns data into language here, and nowhere else. This is the
+%% half of the layering rule (spec §4.2) that lives in LaTeX; the other half
+%% is the Freemarker templates emitting raw tokens.
+%% ---------------------------------------------------------------------------
+
+% stdin/stdout render as prose; anything else is a filename, shown verbatim.
+%
+% Defect #1 was this comparison, in a version where the value being compared
+% had already been translated to "Đầu vào chuẩn" by problem.tex before it ever
+% reached LaTeX — so the test could never succeed and every statement claimed
+% to read from "the text file Standard input". It works here only because the
+% Freemarker layer now emits the bare token, which the ftl-emits-raw-data lint
+% enforces.
+\newcommand{\vnolymp@ioname}[1]{%
+  \IfStrEq{#1}{stdin}{\vnolymp@kw{value.stdin}}{%
+    \IfStrEq{#1}{stdout}{\vnolymp@kw{value.stdout}}{%
+      \texttt{#1}%
+    }%
+  }%
+}
+
+\newcommand{\vnolymp@timename}[1]{#1\,\vnolymp@kw{unit.seconds}}
+\newcommand{\vnolymp@memname}[1]{#1\,\vnolymp@kw{unit.megabytes}}
+
+%% ---------------------------------------------------------------------------
+%% Render hooks — replaced wholesale by vnolymp-style.def
+%% ---------------------------------------------------------------------------
+
+% #1 index, #2 title, #3 points (may be empty)
+\providecommand{\vnolymp@renderheader}[3]{%
+  \par\bigskip\noindent
+  \begingroup
+    \bfseries\Large
+    \vnolymp@kw{word.problem}~#1. #2%
+    \ifblank{#3}{}{\hfill #3~\vnolymp@kw{word.points}}%
+  \endgroup
+  \par\medskip
+}
+
+% Rows are supplied by \vnolymp@panelrows, built up below.
+\providecommand{\vnolymp@renderpanel}[1]{%
+  \par\noindent
+  \begin{tabular}{@{}l@{\hspace{1.5em}}l@{}}
+    #1
+  \end{tabular}%
+  \par\medskip
+}
+
+\providecommand{\vnolymp@sectionhead}[1]{%
+  \par\medskip\noindent
+  \begingroup\bfseries\large #1\endgroup
+  \par\nopagebreak\smallskip
+}
+
+\providecommand{\vnolymp@rendersubtasks}[1]{%
+  \par\noindent
+  \begin{tabular}{@{}c c p{0.55\linewidth}@{}}
+    \hline
+    \vnolymp@kw{table.subtask} & \vnolymp@kw{table.points}
+      & \vnolymp@kw{table.constraints}\\
+    \hline
+    #1
+    \hline
+  \end{tabular}%
+  \par\medskip
+}
+
+%% ---------------------------------------------------------------------------
+%% The limits panel
+%%
+%% Every row is conditional on its key being supplied, so an omitted key is
+%% simply absent rather than printed blank or as "not stated".
+%% ---------------------------------------------------------------------------
+
+\newcommand{\vnolymp@panelrows}{}
+
+\newcommand{\vnolymp@addrow}[2]{%
+  \expandafter\gdef\expandafter\vnolymp@panelrows\expandafter{%
+    \vnolymp@panelrows #1 & #2\\%
+  }%
+}
+
+% Note \ifdefempty, not \ifblank: these are macros, and \ifblank does not
+% expand its argument, so it would see the macro token itself — never blank —
+% and emit a row for every key whether or not it was supplied.
+\newcommand{\vnolymp@buildpanel}{%
+  \gdef\vnolymp@panelrows{}%
+  % A pre-formatted string from the legacy syntax wins over the numeric key,
+  % because it already carries its unit.
+  \ifdefempty{\vnolymp@p@timetext}{%
+    \ifdefempty{\vnolymp@p@time}{}{%
+      \vnolymp@addrow{\vnolymp@kw{panel.time}}{\vnolymp@timename{\vnolymp@p@time}}}%
+  }{%
+    \vnolymp@addrow{\vnolymp@kw{panel.time}}{\vnolymp@p@timetext}%
+  }%
+  \ifdefempty{\vnolymp@p@memorytext}{%
+    \ifdefempty{\vnolymp@p@memory}{}{%
+      \vnolymp@addrow{\vnolymp@kw{panel.memory}}{\vnolymp@memname{\vnolymp@p@memory}}}%
+  }{%
+    \vnolymp@addrow{\vnolymp@kw{panel.memory}}{\vnolymp@p@memorytext}%
+  }%
+  \ifdefempty{\vnolymp@p@input}{}{%
+    \vnolymp@addrow{\vnolymp@kw{panel.input}}{\vnolymp@ioname{\vnolymp@p@input}}}%
+  \ifdefempty{\vnolymp@p@output}{}{%
+    \vnolymp@addrow{\vnolymp@kw{panel.output}}{\vnolymp@ioname{\vnolymp@p@output}}}%
+  \ifdefempty{\vnolymp@p@author}{}{%
+    \vnolymp@addrow{\vnolymp@kw{panel.author}}{\vnolymp@p@author}}%
+  \ifdefempty{\vnolymp@p@origin}{}{%
+    \vnolymp@addrow{\vnolymp@kw{panel.origin}}{\vnolymp@p@origin}}%
+}
+
+%% ---------------------------------------------------------------------------
+%% The problem environment
+%% ---------------------------------------------------------------------------
+
+\newcounter{vnolympproblem}
+
+% Shared by both entry points: the key-value environment below, and the legacy
+% positional form in vnolymp-compat.def. Keys must already be set.
+\newcommand{\vnolymp@problem@start}[1]{%
+  % An explicit index= overrides the counter and resynchronises it, so a
+  % booklet starting at problem 5 continues 6, 7, ...
+  \ifdefempty{\vnolymp@p@index}{%
+    \stepcounter{vnolympproblem}%
+  }{%
+    \setcounter{vnolympproblem}{\vnolymp@p@index}%
+  }%
+  % Pass a literally empty third argument when no points were given, so the
+  % hook's own \ifblank test sees emptiness rather than a macro token.
+  \ifdefempty{\vnolymp@p@points}{%
+    \vnolymp@renderheader{\arabic{vnolympproblem}}{#1}{}%
+  }{%
+    \vnolymp@renderheader{\arabic{vnolympproblem}}{#1}{\vnolymp@p@points}%
+  }%
+  \ifvnolymp@hidelimits\else
+    \vnolymp@buildpanel
+    \vnolymp@renderpanel{\vnolymp@panelrows}%
+  \fi
+}
+
+\newcommand{\vnolymp@problem@finish}{%
+  \ifvnolymp@pagebreak\clearpage\else\par\medskip\fi
+}
+
+\newenvironment{problem}[2][]{%
+  \vnolymp@resetkeys
+  \ekvset{vnolymp@problem}{#1}%
+  \vnolymp@problem@start{#2}%
+}{%
+  \vnolymp@problem@finish
+}
+
+%% ---------------------------------------------------------------------------
+%% Section headings
+%%
+%% Each emits a heading and nothing else. The legacy \InputFile also printed a
+%% sentence naming the input source, which the limits panel above now carries.
+%% ---------------------------------------------------------------------------
+
+\newcommand{\vnolymp@section}[1]{\vnolymp@sectionhead{\vnolymp@kw{#1}}}
+
+\newcommand{\InputFile}{\vnolymp@section{section.input}}
+\newcommand{\OutputFile}{\vnolymp@section{section.output}}
+\newcommand{\Constraints}{\vnolymp@section{section.constraints}}
+\newcommand{\Scoring}{\vnolymp@section{section.scoring}}
+\newcommand{\Interaction}{\vnolymp@section{section.interaction}}
+\newcommand{\Note}{\vnolymp@section{section.notes}}
+\newcommand{\Notes}{\vnolymp@section{section.notes}}
+% Defect #2: the old \Explanation was the one section command defined without
+% \section{}, so its heading ran into the following paragraph.
+\newcommand{\Explanation}{\vnolymp@section{section.explanation}}
+\newcommand{\Explanations}{\vnolymp@section{section.explanation}}
+\newcommand{\Example}{\vnolymp@section{section.examples}}
+\newcommand{\Examples}{\vnolymp@section{section.examples}}
+
+%% ---------------------------------------------------------------------------
+%% Subtasks
+%%
+%% The first argument is a percentage of the problem's total score; the
+%% package supplies the per-cent sign. Because the semantics are fixed, the
+%% environment can check that the parts sum to 100 — a mistake that is easy to
+%% make while editing and expensive to discover during a contest.
+%% ---------------------------------------------------------------------------
+
+\newcounter{vnolympsubtask}
+\newcounter{vnolympsubtasksum}
+\newcommand{\vnolymp@subtaskrows}{}
+
+% \xappto expands as it appends, freezing the subtask number at its value on
+% this line. Appending \arabic{vnolympsubtask} unexpanded instead would defer
+% the lookup until the table is typeset at the end of the environment — by
+% which point the counter holds the LAST subtask's number, and every row shows
+% the same digit.
+%
+% The row body is wrapped in \unexpanded because it is author-supplied and
+% routinely contains math and fragile commands.
+\newcommand{\subtask}[2]{%
+  \stepcounter{vnolympsubtask}%
+  \addtocounter{vnolympsubtasksum}{#1}%
+  \xappto\vnolymp@subtaskrows{%
+    \number\value{vnolympsubtask} &
+    \unexpanded{#1}\noexpand\% &
+    \unexpanded{#2}\noexpand\\%
+  }%
+}
+
+\newenvironment{subtasks}{%
+  \setcounter{vnolympsubtask}{0}%
+  \setcounter{vnolympsubtasksum}{0}%
+  \gdef\vnolymp@subtaskrows{}%
+  \vnolymp@section{section.scoring}%
+  \ignorespaces
+}{%
+  \vnolymp@rendersubtasks{\vnolymp@subtaskrows}%
+  \ifnum\value{vnolympsubtasksum}=100\relax\else
+    \PackageWarning{vnolymp}{%
+      Subtask percentages sum to \arabic{vnolympsubtasksum}, not 100,
+      in problem \arabic{vnolympproblem}%
+    }%
+  \fi
+}
+
+\endinput

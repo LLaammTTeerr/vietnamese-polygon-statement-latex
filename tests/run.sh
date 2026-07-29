@@ -55,6 +55,16 @@ for dir in "${CASES[@]}"; do
     ASSERT_FAILURES=()
     total=$((total + 1))
 
+    # A case that cannot assert anything must never report success. Without
+    # this, a missing assert.sh leaves ASSERT_FAILURES empty and the case
+    # passes silently — a green result that checked nothing at all.
+    if [[ ! -f "$dir/lint.sh" && ! -f "$dir/assert.sh" ]]; then
+        FAILED_CASES+=("$CASE_NAME")
+        printf '%s  FAIL%s  %s\n' "$red" "$off" "$CASE_NAME"
+        printf '%s        case has neither lint.sh nor assert.sh%s\n' "$dim" "$off"
+        continue
+    fi
+
     if [[ -f "$dir/lint.sh" ]]; then
         # Static check: no compilation, assertions run directly.
         # shellcheck disable=SC1090
@@ -93,9 +103,16 @@ for dir in "${CASES[@]}"; do
         CASE_PDF="$CASE_BUILD/doc.pdf"
         CASE_LOG="$CASE_BUILD/doc.log"
         CASE_TEXT="$CASE_BUILD/doc.txt"
-        [[ -f "$CASE_PDF" ]] && pdftotext "$CASE_PDF" "$CASE_TEXT" 2>/dev/null
+        # Layout mode preserves column structure, which plain extraction
+        # destroys — it emits a table column-first, so a row's cells end up far
+        # apart and nothing can assert that a given row reads as it should.
+        CASE_LAYOUT="$CASE_BUILD/doc.layout.txt"
+        if [[ -f "$CASE_PDF" ]]; then
+            pdftotext "$CASE_PDF" "$CASE_TEXT" 2>/dev/null
+            pdftotext -layout "$CASE_PDF" "$CASE_LAYOUT" 2>/dev/null
+        fi
 
-        export CASE_NAME CASE_BUILD CASE_PDF CASE_LOG CASE_TEXT CASE_EXIT
+        export CASE_NAME CASE_BUILD CASE_PDF CASE_LOG CASE_TEXT CASE_LAYOUT CASE_EXIT
         # shellcheck disable=SC1090
         source "$dir/assert.sh"
     fi

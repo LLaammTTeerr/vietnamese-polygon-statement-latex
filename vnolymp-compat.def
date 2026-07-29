@@ -1,0 +1,116 @@
+%%
+%% vnolymp-compat.def — accept the syntax of the package this replaces.
+%%
+%% Loaded last, so it can redefine what the other modules established.
+%% Everything here is deprecated: it exists so existing statements keep
+%% building, and each path warns once so the warnings can be worked through at
+%% leisure rather than all at once.
+%%
+\ProvidesFile{vnolymp-compat.def}[2026/07/29 Legacy compatibility for vnolymp]
+
+%% ---------------------------------------------------------------------------
+%% Legacy positional \begin{problem}
+%%
+%%   \begin{problem}{title}{infile}{outfile}{timelimit}{memorylimit}
+%%   \begin{problem}{title}{infile}{outfile}{timelimit}{memorylimit}{points}
+%%
+%% versus the current form:
+%%
+%%   \begin{problem}[input=stdin, time=1, memory=256]{title}
+%%
+%% The two are told apart by whether an optional argument follows. That is
+%% unambiguous, because the legacy form's first argument is always mandatory.
+%% ---------------------------------------------------------------------------
+
+\let\vnolymp@problem@keyvalue\problem
+
+\renewcommand{\problem}{%
+  \@ifnextchar[%]
+    {\vnolymp@problem@keyvalue}%
+    {\vnolymp@problem@legacy}%
+}
+
+\newcommand{\vnolymp@problem@legacy}[5]{%
+  % The optional sixth argument (points) is detected by peeking for a brace.
+  % This is inherited from the package being replaced and is genuinely
+  % fragile: a statement whose body opens with a braced group would be
+  % misread. It is one more reason to migrate to the key-value form, and it is
+  % why the new syntax has no optional trailing argument.
+  \@ifnextchar\bgroup
+    {\vnolymp@problem@legacy@go{#1}{#2}{#3}{#4}{#5}}%
+    {\vnolymp@problem@legacy@go{#1}{#2}{#3}{#4}{#5}{}}%
+}
+
+\newcommand{\vnolymp@problem@legacy@go}[6]{%
+  \vnolymp@compat@warnonce
+  \vnolymp@resetkeys
+  \renewcommand{\vnolymp@p@input}{#2}%
+  \renewcommand{\vnolymp@p@output}{#3}%
+  % Limits arrive as prose here, not as numbers, so they bypass unit
+  % formatting entirely — see \vnolymp@p@timetext in vnolymp-problem.def.
+  \renewcommand{\vnolymp@p@timetext}{#4}%
+  \renewcommand{\vnolymp@p@memorytext}{#5}%
+  \renewcommand{\vnolymp@p@points}{#6}%
+  \vnolymp@problem@start{#1}%
+}
+
+\newif\ifvnolymp@compat@warned \vnolymp@compat@warnedfalse
+\newcommand{\vnolymp@compat@warnonce}{%
+  \ifvnolymp@compat@warned\else
+    \global\vnolymp@compat@warnedtrue
+    \PackageWarning{vnolymp}{%
+      Deprecated positional \string\begin{problem} syntax in use.\MessageBreak
+      Prefer the key-value form:\MessageBreak
+      \space\space\string\begin{problem}[input=stdin, output=stdout,
+        time=1, memory=256]{Title}\MessageBreak
+      Limits given positionally are printed verbatim, so their units come
+      from\MessageBreak your text rather than from the language file.
+      Reported once per document%
+    }%
+  \fi
+}
+
+%% ---------------------------------------------------------------------------
+%% Legacy subtask commands
+%%
+%% The package this replaces had two unrelated mechanisms: \Subtask, a bare
+%% section heading, and \SubtaskWithScore, a counter-driven heading. Both
+%% collapse into the `subtasks` environment.
+%% ---------------------------------------------------------------------------
+
+\newcommand{\Subtask}{%
+  \PackageWarning{vnolymp}{%
+    \string\Subtask\space is deprecated; use the `subtasks'
+    environment.\MessageBreak Rendering as a plain scoring heading%
+  }%
+  \vnolymp@section{section.scoring}%
+}
+
+\newcommand{\SubtaskWithScore}[1]{%
+  \PackageWarning{vnolymp}{%
+    \string\SubtaskWithScore\space is deprecated; use
+    \string\subtask\space inside the `subtasks' environment%
+  }%
+  \par\medskip\noindent
+  \textbf{\vnolymp@kw{table.subtask}}~#1%
+  \par\smallskip
+}
+
+%% ---------------------------------------------------------------------------
+%% Miscellany
+%% ---------------------------------------------------------------------------
+
+% The legacy package redefined \t as \texttt, clobbering LaTeX's tie accent
+% (defect #8), and statements.ftl then redefined it again with a different
+% arity. \t is left alone here. Statements that used it for monospace should
+% use \texttt; this alias is deliberately NOT provided, because silently
+% keeping a broken redefinition is how it survived for so long.
+
+% Legacy sample-table width knobs. Accepted and ignored: the sample blocks no
+% longer use fixed-width columns, which is what made long lines overflow.
+\newcommand{\widthin}[1]{}
+\newcommand{\widthout}[1]{}
+\newcommand{\stretchin}[1]{}
+\newcommand{\stretchout}[1]{}
+
+\endinput

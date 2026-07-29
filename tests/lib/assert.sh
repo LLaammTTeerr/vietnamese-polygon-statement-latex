@@ -73,6 +73,15 @@ assert_pdf_has_line() {
     fi
 }
 
+# Asserts an extended regex against layout-preserving extraction, where a
+# table row stays on one line. Use this for anything positional — a cell's
+# value, a row's ordering — which plain extraction cannot express.
+assert_layout_matches() {
+    _have_pdf || { _fail "no PDF produced, cannot match /$1/"; return 1; }
+    grep -qE -- "$1" "$CASE_LAYOUT" \
+        || _fail "expected layout text to match /$1/"
+}
+
 # --- engine log --------------------------------------------------------------
 
 # LuaTeX writes missing-glyph warnings as:
@@ -90,6 +99,11 @@ assert_no_missing_glyphs() {
         _fail "${hits} missing glyph(s) — ${which}"
         return 1
     fi
+}
+
+assert_log_contains() {
+    grep -qF -- "$1" "$CASE_LOG" 2>/dev/null \
+        || _fail "expected the engine log to contain '$1'"
 }
 
 assert_no_undefined() {

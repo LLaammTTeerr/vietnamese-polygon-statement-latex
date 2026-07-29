@@ -9,6 +9,6 @@
 #   DEFAULT_ENGINE=lualatex
 #   DEFAULT_PREAMBLE=tests/preamble-vnolymp.tex
 
-DEFAULT_ENGINE=pdflatex
-DEFAULT_PREAMBLE=tests/preamble-legacy.tex
+DEFAULT_ENGINE=lualatex
+DEFAULT_PREAMBLE=tests/preamble-vnolymp.tex
 DEFAULT_OPTS=nopagebreak

@@ -66,4 +66,14 @@
 \vnolymp@lang{page.of}{trên}
 \vnolymp@lang{page.blank}{Trang này được chủ ý bỏ trống}
 
+%% Subtask table ------------------------------------------------------------
+%%
+%% Column headings for the `subtasks` environment. "Subtask" is kept as the
+%% loanword Vietnamese competitive programmers actually use; change it here if
+%% you prefer "STT" or "No." -- nothing outside this file needs to know.
+
+\vnolymp@lang{table.subtask}{Subtask}
+\vnolymp@lang{table.points}{Điểm}
+\vnolymp@lang{table.constraints}{Ràng buộc}
+
 \endinput

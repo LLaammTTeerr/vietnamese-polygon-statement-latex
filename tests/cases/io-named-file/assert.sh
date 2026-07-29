@@ -2,9 +2,9 @@
 # correct: the actual filename has to reach the page. Green against the legacy
 # template; kept as a regression guard across the rewrite.
 #
-# ./opts carries `hidesetting` only because the legacy template cannot build
-# without it (defect #3). Drop the opts file once tests/config.sh points at
-# vnolymp.
+# The filename now reaches the page via the limits panel rather than via a
+# sentence injected into the Input section, since section commands emit a
+# heading and nothing else.
 
 assert_compiles
 assert_pdf_contains "treecut.inp"
