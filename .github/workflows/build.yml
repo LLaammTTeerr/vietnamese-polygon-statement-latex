@@ -24,38 +24,80 @@ jobs:
           apt-get update
           apt-get install -y --no-install-recommends poppler-utils python3
 
-      # Cheap, and it turns the commonest CI-only failure -- a font or package
-      # the container happens not to ship -- into a named missing item rather
-      # than a confusing assertion failure further down.
-      - name: Check environment
+      # These three steps EXIT NON-ZERO on anything missing. An earlier version
+      # printed "MISSING" and exited 0, so the step went green and its success
+      # proved nothing. They are separate steps because step conclusions are
+      # readable from the public API while job logs are not -- so which of the
+      # three fails is itself the diagnosis.
+      - name: Check fonts
         run: |
-          lualatex --version | head -1
-          echo "--- fonts ---"
-          for f in lmroman10-regular.otf lmmono10-regular.otf lmmonolt10-bold.otf \
-                   latinmodern-math.otf SourceSansPro-Regular.otf \
-                   SourceSansPro-Semibold.otf SourceSansPro-Bold.otf \
-                   XCharter-Roman.otf; do
-            printf '%-32s %s\n' "$f" "$(kpsewhich $f >/dev/null && echo ok || echo MISSING)"
+          miss=0
+          for f in lmroman10-regular.otf lmroman10-bold.otf lmroman10-italic.otf \
+                   lmmono10-regular.otf lmmonolt10-bold.otf latinmodern-math.otf \
+                   SourceSansPro-Regular.otf SourceSansPro-Semibold.otf \
+                   SourceSansPro-Bold.otf XCharter-Roman.otf; do
+            if kpsewhich "$f" >/dev/null; then echo "ok      $f"
+            else echo "MISSING $f"; miss=1; fi
           done
-          echo "--- packages ---"
+          exit $miss
+
+      - name: Check packages
+        run: |
+          miss=0
           for p in tcolorbox fvextra expkv-def unicode-math hhline tabularx \
-                   colortbl lastpage microtype fancyhdr etoolbox xstring; do
-            printf '%-14s %s\n' "$p" "$(kpsewhich $p.sty >/dev/null && echo ok || echo MISSING)"
+                   colortbl lastpage microtype fancyhdr etoolbox xstring \
+                   fontspec geometry graphicx array xcolor; do
+            if kpsewhich "$p.sty" >/dev/null; then echo "ok      $p"
+            else echo "MISSING $p"; miss=1; fi
           done
-          echo "--- tools ---"
-          for t in pdftotext pdfinfo python3 make bash; do
-            printf '%-10s %s\n' "$t" "$(command -v $t || echo MISSING)"
+          exit $miss
+
+      - name: Check tools
+        run: |
+          miss=0
+          for t in lualatex pdftotext pdfinfo python3 make bash; do
+            if command -v "$t" >/dev/null; then echo "ok      $t"
+            else echo "MISSING $t"; miss=1; fi
           done
+          lualatex --version | head -1
+          exit $miss
 
       - name: Run test suite
-        run: tests/run.sh
+        id: suite
+        run: |
+          set -o pipefail
+          tests/run.sh 2>&1 | tee suite.out
+
+      # Artifact NAMES are readable from the public API even when logs are not,
+      # so the names of the failing cases are encoded into one. Without this a
+      # red build is opaque to anyone without repository admin rights.
+      - name: Publish failing case names
+        if: failure() && steps.suite.outcome == 'failure'
+        run: |
+          # ANSI is stripped defensively. tests/run.sh disables colour when
+          # stdout is not a tty, which it isn't through tee -- but a parser
+          # that silently yields nothing would be worse than a redundant sed.
+          sed 's/\x1b\[[0-9;]*m//g' suite.out > suite.plain
+          cases=$(grep -E '^[[:space:]]*FAIL' suite.plain | awk '{print $2}' | tr '\n' '_' | sed 's/_$//')
+          [ -n "$cases" ] || cases="none-parsed"
+          mkdir -p failure-marker
+          cp suite.out failure-marker/ 2>/dev/null || true
+          echo "MARKER_NAME=failing__${cases}" >> "$GITHUB_ENV"
+
+      - name: Upload failure marker
+        if: failure() && env.MARKER_NAME != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.MARKER_NAME }}
+          path: failure-marker/
+          if-no-files-found: ignore
 
       - name: Build samples
         run: make samples
 
-      # Printed inline rather than only uploaded as an artifact, because
-      # downloading artifacts needs repository admin rights and the log is the
-      # one thing anyone debugging a red build actually needs to see.
+      # Printed inline as well, grouped per file, because downloading artifacts
+      # also needs admin rights and this is what a human debugging a red build
+      # actually needs to see.
       - name: Show LaTeX logs on failure
         if: failure()
         run: |
@@ -86,4 +128,5 @@ jobs:
           path: |
             build/tests/**/*.log
             samples/**/*.log
+            suite.out
           if-no-files-found: ignore
