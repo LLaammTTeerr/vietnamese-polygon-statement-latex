@@ -58,6 +58,25 @@ comparison, and formatting, and the comparison is wrong because a *different*
 file already performed the translation. Separating these concerns is what makes
 the remaining work tractable.
 
+### 1.4 Status of `examples/`
+
+`examples/p1` and `examples/p2` are past statements. They are **reference
+material for deciding the API, not authority over it.** No API shape, default,
+or behaviour may be adopted merely because an example uses it; each requires
+explicit approval from the author.
+
+This is a standing constraint, not a one-off. The old statements contain the
+very habits this rewrite exists to eliminate — hand-typed and mutually
+inconsistent units (`1 giây` in one, `1 second` in the other, `256 megabytes`
+in both), a `tabular` declaring ten columns while using five, duplicated
+`\Constraints` and `\Subtask` blocks, and a reference to a missing image.
+Treating them as ground truth would launder those mistakes into the new design
+as requirements.
+
+The I/O default in §5.1 is the worked example: both statements use `.inp`/`.out`
+files, and the author nevertheless chose `stdin`/`stdout`. The examples describe
+the past, not the target.
+
 ## 2. Goals and non-goals
 
 ### Goals
@@ -197,17 +216,15 @@ their Vietnamese or English rendering are supplied by the language layer.
 `input` and `output` accept the literal tokens `stdin`/`stdout` or a filename.
 All keys are optional; omitted keys are omitted from the limits panel.
 
-**Named files are the primary case, not `stdin`/`stdout`.** Both of the
-author's real statements use `.inp`/`.out` pairs — `{treecut.inp}{treecut.out}`
-and `{unblock.inp}{unblock.out}` — following VOI convention. The `stdin`
-special-casing must therefore be the *branch*, not the default, and the
-filename branch is the one that needs the most care in the limits panel and in
-the sample-block column headings.
+**`stdin`/`stdout` are the primary case; named files are the branch.**
+Approved by the author. Note that this deliberately diverges from the past
+statements in `examples/`, which both use `.inp`/`.out` pairs — the author's
+intended direction is online-judge style, and the old statements do not
+constrain it (see §1.4).
 
-The same statements also demonstrate why units must move to the language layer:
-they are hand-typed and already inconsistent — `{1 giây}` in one, `{1 second}`
-in the other, and `{256 megabytes}` in both, i.e. English units inside
-Vietnamese statements.
+Both branches must nonetheless be correct, since the filename case still
+appears in the limits panel and in sample-block column headings — and it is
+precisely the branch that defect #1 rendered nonsensical.
 
 ### 5.2 Sections and blocks
 
@@ -216,11 +233,7 @@ Section commands are unchanged in name: `\InputFile`, `\OutputFile`,
 `\Scoring`. `\Explanation` gains the `\section{}` it is missing (defect #2).
 
 Subtasks unify into one environment, replacing both `\Subtask` and
-`\SubtaskWithScore`. The author's real statements show **two distinct shapes in
-active use**, and the environment must serve both.
-
-Flat form — a list of "N % of tests with this constraint", as in
-`examples/p1/sample.tex:27-32`:
+`\SubtaskWithScore`. **Flat form only** — approved by the author:
 
 ```latex
 \begin{subtasks}
@@ -230,24 +243,21 @@ Flat form — a list of "N % of tests with this constraint", as in
 \end{subtasks}
 ```
 
-Matrix form — one column per constrained variable, as in
-`examples/p2/contest.tex:34-45`, where the author hand-built a `multirow`
-table with columns for $N$, $M$ and $a_{x,y}$:
+A constraint *matrix* — one column per constrained variable — is deliberately
+**not** given dedicated API surface. It is rare enough that the cost of a
+`columns` key outweighs the benefit. Instead a thin styling wrapper is
+provided, inside which the author writes an ordinary `tabular`:
 
 ```latex
-\begin{subtasks}[columns={$N$, $M$, $a_{x,y}$}]
-  \subtask{30}{$N \le 20$ & $M \le 20$ & ---}
-  \subtask{35}{--- & --- & $|a_{x,y}| \ge a_{x,y}$}
-  \subtask{35}{--- & --- & ---}
-\end{subtasks}
+\begin{subtasktable}{$N$ & $M$ & $a_{x,y}$}
+  ... ordinary tabular rows ...
+\end{subtasktable}
 ```
 
-The optional `columns` key selects the shape: absent gives the flat form,
-present gives the matrix with a spanning "Giới hạn thêm" header over the
-constraint columns and a "Điểm" column at the right. This replaces roughly
-twelve lines of hand-written `multirow`/`cline` markup per problem — markup
-that, in `examples/p2/contest.tex:35`, declares ten columns
-(`{|c|c|c|c|c|c|c|c|c|c}`) while using only five.
+The wrapper supplies the rules, tinting, header treatment and spacing so a
+hand-written matrix still matches the rest of the document; the author retains
+full control of the columns. This keeps the common case one line per subtask
+and the rare case fully general, without a mode flag.
 
 Samples keep their current commands:
 
@@ -341,17 +351,28 @@ become ‘H’ and proper en/em dashes.
 
 This is not hypothetical. `examples/p2/contest.tex:14-18` writes
 `` $\texttt{`H'}$ `` intending ‘H’, and its subtask table uses `---`. Migrating
-to LuaLaTeX without `Ligatures=TeX` would silently degrade existing statements
-rather than fail loudly, which is the worst failure mode available.
+to LuaLaTeX without `Ligatures=TeX` would silently degrade prose rather than
+fail loudly, which is the worst failure mode available.
 
-Policy:
+Policy — the monospace half was delegated to the implementer and decided as
+follows:
 
-- Serif and sans: `Ligatures=TeX`. Unambiguously correct for prose.
-- Inline monospace (`\texttt`, `\t`): `Ligatures=TeX`, so character literals
-  like `` `H' `` typeset as intended.
-- **Sample-test blocks: ligatures off.** Sample data is verbatim and must
-  reproduce byte for byte; a `--` inside test data must never become an en
-  dash. These blocks therefore use a separately declared font instance.
+- **Serif and sans: `Ligatures=TeX`.** Unambiguously correct for prose: `--`
+  becomes an en dash, ``` ``…'' ``` becomes curly quotes.
+- **All monospace: ligatures off.** Monospace exists to display literal
+  characters. A mono font that silently rewrites `` ` `` as ‘ can never show a
+  backtick, which fails the first time a statement quotes shell syntax, a C
+  string literal, or Markdown. Prose-level quoting belongs in the surrounding
+  serif — ``ký tự `H'`` still yields ‘H’ because the prose font has TeX
+  ligatures enabled.
+- **Sample-test blocks: ligatures off**, as a special case of the above.
+  Sample data is verbatim and must reproduce byte for byte; a `--` inside test
+  data must never become an en dash.
+
+Migration consequence: the `` \texttt{`H'} `` idiom now renders literally.
+The authoring guide documents writing `\texttt{H}` with the quotation marks in
+the surrounding prose instead. The migration script flags occurrences rather
+than rewriting them, since the intent is not mechanically recoverable.
 
 ### 7.2.2 Math
 
@@ -417,27 +438,24 @@ test` runs the suite, `make clean` removes artefacts.
   and heavy diacritic text.
 - `samples/booklet/` — four problems with a cover page.
 
-**Real fixtures**, supplied by the author in `examples/`:
+**All fixtures are written fresh.** Per the author's decision, `examples/` is
+reference material only and does not enter the test suite (§1.4). Writing
+fixtures deliberately keeps the old statements' habits — hand-typed units,
+malformed tables, duplicated blocks — out of the regression baseline.
 
-- `p1` ("Chia cây") — file I/O, `itemize`-based input description, percentage
-  subtasks via `\Scoring`, two sample pairs, two `\includegraphics` figures with
-  captions. Compiles today. It is the reference for the flat subtask form.
-- `p2` ("Xếp gỗ") — file I/O, matrix subtasks via `\Subtask`, `\Constraints`,
-  `\Explanation`, `\texttt` character literals. It is the reference for the
-  matrix subtask form and for §7.2.1.
+The fixtures must nonetheless *cover* the features those statements exercise,
+which is what they were read for:
 
-`p2` does not currently compile and must be repaired before use as a fixture.
-Its defects are in the author's source, not in the template:
-
-- Lines 26–45 are duplicated verbatim at lines 56–75 (`\Constraints` and
-  `\Subtask` with its table appear twice).
-- Line 77 includes `anh.png`, which is absent from `examples/p2/`.
-- Line 35 declares ten `tabular` columns and uses five.
-
-The repaired copy becomes the fixture; the original is preserved so the
-duplication is not silently "fixed" without the author seeing it. `p2` is also
-a live demonstration of defect #2 — it uses `\Explanation`, which currently
-renders as body text rather than a heading.
+| Feature | Seen in | Fixture |
+|---|---|---|
+| Named-file I/O (`.inp`/`.out`) | p1, p2 | `kitchen-sink` |
+| `itemize`-based input description | p1 | `kitchen-sink` |
+| Percentage subtasks | p1 | `minimal` |
+| Multiple sample pairs | p1 | `kitchen-sink` |
+| `\includegraphics` with caption | p1 | `kitchen-sink` |
+| Hand-written constraint matrix | p2 | `kitchen-sink` (via `subtasktable`) |
+| Inline `\texttt` literals | p2 | `kitchen-sink` (pins §7.2.1) |
+| `\Explanation` as a heading | p2 | `minimal` (pins defect #2) |
 
 ### 9.3 Tests
 
@@ -483,7 +501,7 @@ uploads the built PDFs as artefacts.
 |---|---|
 | A TeX Live upgrade changes font coverage | The §9.3 missing-glyph test fails the build rather than shipping tofu. |
 | STIX/Source math pairing looks wrong | Confirm visually during implementation; documented fallbacks in §7.2. |
-| The author's existing statements use commands not surveyed here | Their real statements become test fixtures (§9.2); compat shims added as gaps appear. |
+| The author's existing statements use commands not surveyed here | `examples/` was surveyed for feature coverage (§9.2 table) and the fixtures reproduce every construct found. Further gaps are handled by adding compat shims as they surface, not by importing old statements. |
 | Polygon changes its Freemarker contract | The Freemarker layer is thin and emits raw data, so a change affects only `problem.tex` and the two `.ftl` files. |
 | Scope is large enough to stall | Sequenced into independently verifiable stages, §12. |
 
@@ -507,7 +525,7 @@ dependency, not by visibility.
    header/footer, cover page. The largest stage, and the one needing visual
    review rather than only automated checks.
 6. **Samples, compat shim, docs, CI** — `kitchen-sink` and `booklet` fixtures,
-   `vnolymp-compat.def` validated against the author's real statements,
+   `vnolymp-compat.def` validated against the legacy-syntax fixture,
    `README.md`, `docs/AUTHORING.md`, GitHub Actions.
 
 Stage 1 is deliberately first. Writing tests against the broken template proves
