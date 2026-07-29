@@ -197,6 +197,18 @@ their Vietnamese or English rendering are supplied by the language layer.
 `input` and `output` accept the literal tokens `stdin`/`stdout` or a filename.
 All keys are optional; omitted keys are omitted from the limits panel.
 
+**Named files are the primary case, not `stdin`/`stdout`.** Both of the
+author's real statements use `.inp`/`.out` pairs — `{treecut.inp}{treecut.out}`
+and `{unblock.inp}{unblock.out}` — following VOI convention. The `stdin`
+special-casing must therefore be the *branch*, not the default, and the
+filename branch is the one that needs the most care in the limits panel and in
+the sample-block column headings.
+
+The same statements also demonstrate why units must move to the language layer:
+they are hand-typed and already inconsistent — `{1 giây}` in one, `{1 second}`
+in the other, and `{256 megabytes}` in both, i.e. English units inside
+Vietnamese statements.
+
 ### 5.2 Sections and blocks
 
 Section commands are unchanged in name: `\InputFile`, `\OutputFile`,
@@ -204,14 +216,38 @@ Section commands are unchanged in name: `\InputFile`, `\OutputFile`,
 `\Scoring`. `\Explanation` gains the `\section{}` it is missing (defect #2).
 
 Subtasks unify into one environment, replacing both `\Subtask` and
-`\SubtaskWithScore`:
+`\SubtaskWithScore`. The author's real statements show **two distinct shapes in
+active use**, and the environment must serve both.
+
+Flat form — a list of "N % of tests with this constraint", as in
+`examples/p1/sample.tex:27-32`:
 
 ```latex
 \begin{subtasks}
-  \subtask{30}{$n \le 100$}
-  \subtask{70}{Không có ràng buộc bổ sung}
+  \subtask{30}{$n \le 20$}
+  \subtask{30}{$n \le 2000$, và tất cả các đỉnh có bậc không quá $2$}
+  \subtask{40}{Không có ràng buộc gì thêm}
 \end{subtasks}
 ```
+
+Matrix form — one column per constrained variable, as in
+`examples/p2/contest.tex:34-45`, where the author hand-built a `multirow`
+table with columns for $N$, $M$ and $a_{x,y}$:
+
+```latex
+\begin{subtasks}[columns={$N$, $M$, $a_{x,y}$}]
+  \subtask{30}{$N \le 20$ & $M \le 20$ & ---}
+  \subtask{35}{--- & --- & $|a_{x,y}| \ge a_{x,y}$}
+  \subtask{35}{--- & --- & ---}
+\end{subtasks}
+```
+
+The optional `columns` key selects the shape: absent gives the flat form,
+present gives the matrix with a spanning "Giới hạn thêm" header over the
+constraint columns and a "Điểm" column at the right. This replaces roughly
+twelve lines of hand-written `multirow`/`cline` markup per problem — markup
+that, in `examples/p2/contest.tex:35`, declares ten columns
+(`{|c|c|c|c|c|c|c|c|c|c}`) while using only five.
 
 Samples keep their current commands:
 
@@ -296,6 +332,29 @@ math      STIX Two Math, with the latin/Latin/num ranges overridden
           to Source Serif Pro via unicode-math's range= mechanism
 ```
 
+### 7.2.1 TeX ligatures — a migration hazard
+
+`fontspec` does **not** apply TeX's input ligatures by default. Verified under
+LuaLaTeX: with default settings `` `H' `` renders as a literal backtick and
+apostrophe, and `--` / `---` remain literal hyphens. With `Ligatures=TeX` they
+become ‘H’ and proper en/em dashes.
+
+This is not hypothetical. `examples/p2/contest.tex:14-18` writes
+`` $\texttt{`H'}$ `` intending ‘H’, and its subtask table uses `---`. Migrating
+to LuaLaTeX without `Ligatures=TeX` would silently degrade existing statements
+rather than fail loudly, which is the worst failure mode available.
+
+Policy:
+
+- Serif and sans: `Ligatures=TeX`. Unambiguously correct for prose.
+- Inline monospace (`\texttt`, `\t`): `Ligatures=TeX`, so character literals
+  like `` `H' `` typeset as intended.
+- **Sample-test blocks: ligatures off.** Sample data is verbatim and must
+  reproduce byte for byte; a `--` inside test data must never become an en
+  dash. These blocks therefore use a separately declared font instance.
+
+### 7.2.2 Math
+
 The math override matters: nearly all mathematics in a CP statement is
 variables, subscripts, and powers of ten (`$n$`, `$a_i$`, `$10^5$`). Taking
 those glyphs from the body font makes inline mathematics blend with the prose,
@@ -357,7 +416,28 @@ test` runs the suite, `make clean` removes artefacts.
   interactive protocol, multiple samples, deliberately over-long sample lines,
   and heavy diacritic text.
 - `samples/booklet/` — four problems with a cover page.
-- Plus the author's own real statements, once supplied, as additional fixtures.
+
+**Real fixtures**, supplied by the author in `examples/`:
+
+- `p1` ("Chia cây") — file I/O, `itemize`-based input description, percentage
+  subtasks via `\Scoring`, two sample pairs, two `\includegraphics` figures with
+  captions. Compiles today. It is the reference for the flat subtask form.
+- `p2` ("Xếp gỗ") — file I/O, matrix subtasks via `\Subtask`, `\Constraints`,
+  `\Explanation`, `\texttt` character literals. It is the reference for the
+  matrix subtask form and for §7.2.1.
+
+`p2` does not currently compile and must be repaired before use as a fixture.
+Its defects are in the author's source, not in the template:
+
+- Lines 26–45 are duplicated verbatim at lines 56–75 (`\Constraints` and
+  `\Subtask` with its table appear twice).
+- Line 77 includes `anh.png`, which is absent from `examples/p2/`.
+- Line 35 declares ten `tabular` columns and uses five.
+
+The repaired copy becomes the fixture; the original is preserved so the
+duplication is not silently "fixed" without the author seeing it. `p2` is also
+a live demonstration of defect #2 — it uses `\Explanation`, which currently
+renders as body text rather than a heading.
 
 ### 9.3 Tests
 
@@ -370,8 +450,13 @@ Three layers, because "it compiled" is not the same as "it is correct".
    detection is what disqualified XCharter (§3.1) and what would have caught
    defect #7.
 3. **Content assertions** via `pdftotext` — assert on extracted text. At
-   minimum: the string `tệp tin văn bản Đầu vào chuẩn` must never appear, which
-   pins defect #1 permanently.
+   minimum:
+   - the string `tệp tin văn bản Đầu vào chuẩn` must never appear, pinning
+     defect #1 permanently;
+   - a statement containing `` \texttt{`H'} `` must extract as ‘H’, not as a
+     backtick, pinning §7.2.1;
+   - sample-test blocks containing a literal `--` must extract as `--`, proving
+     ligatures stayed off where they must.
 
 Additionally, a key-parity test between the two `-lang-` files (§6).
 
