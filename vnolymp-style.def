@@ -63,6 +63,20 @@
   Ligatures      = TeX,
 ]
 
+%% Source Sans Pro is not in every TeX Live installation — notably not in the
+%% texlive/texlive Docker image, where its absence produced "The font
+%% SourceSansPro-Regular cannot be found; this may be but usually is not a
+%% fontspec bug", which tells the reader nothing about how to fix it.
+\IfFontExistsTF{SourceSansPro-Regular.otf}{}{%
+  \PackageError{vnolymp}{Source Sans Pro is not installed}{%
+    vnolymp sets every heading in Source Sans Pro, which your TeX Live does
+    not have.\MessageBreak
+    \MessageBreak
+    Install it with:  tlmgr install sourcesanspro\MessageBreak
+    or, on Debian/Ubuntu:  apt install texlive-fonts-extra%
+  }%
+}
+
 \setsansfont{SourceSansPro-Regular.otf}[
   BoldFont       = SourceSansPro-Semibold.otf,
   ItalicFont     = SourceSansPro-RegularIt.otf,

@@ -24,6 +24,19 @@ jobs:
           apt-get update
           apt-get install -y --no-install-recommends poppler-utils python3
 
+      # texlive/texlive:latest does not ship Source Sans Pro, which the package
+      # uses for every heading. Locally it arrives via Debian's
+      # texlive-fonts-extra, which is why this only ever failed in CI: 14 of 17
+      # cases died with "The font SourceSansPro-Regular cannot be found".
+      #
+      # xcharter is for the test suite, not the package: selftest-missing-glyph
+      # feeds XCharter to the missing-glyph detector precisely because it lacks
+      # the Vietnamese hook-above characters.
+      - name: Install TeX Live fonts not in the image
+        run: |
+          tlmgr install sourcesanspro xcharter || \
+            echo "tlmgr install failed; the font check below will report what is missing"
+
       # These three steps EXIT NON-ZERO on anything missing. An earlier version
       # printed "MISSING" and exited 0, so the step went green and its success
       # proved nothing. They are separate steps because step conclusions are

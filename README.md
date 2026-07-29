@@ -13,9 +13,28 @@ A rewrite of this repository's Vietnamese fork of
 
 - **LuaLaTeX** — required, not optional. The package uses `fontspec` and
   OpenType fonts for Vietnamese diacritics.
-- TeX Live 2023 or newer, with `tcolorbox`, `fvextra`, `expkv-def`,
-  `unicode-math`, and the Latin Modern and Source Sans font families.
-  `texlive-full` covers everything.
+- TeX Live 2023 or newer with these packages: `tcolorbox`, `fvextra`,
+  `expkv-def`, `unicode-math`, `hhline`, `tabularx`, `colortbl`, `lastpage`,
+  `microtype`, `fancyhdr`, `etoolbox`, `xstring`, plus the **Latin Modern**
+  and **Source Sans Pro** font families.
+
+On Debian or Ubuntu, `texlive-full` covers everything;
+`texlive-fonts-extra` is the package that supplies Source Sans Pro.
+
+On a plain TeX Live installation — including the `texlive/texlive` Docker
+image, which does **not** ship it — install it with:
+
+```
+tlmgr install sourcesanspro
+```
+
+The package checks for it at load time and says so, rather than leaving you
+with fontspec's "cannot be found" error.
+
+Running the test suite additionally needs `poppler-utils` (for `pdftotext`
+and `pdfinfo`), `python3`, and the `xcharter` font — the last is deliberate:
+one test feeds XCharter to the missing-glyph detector *because* it lacks the
+Vietnamese hook-above characters.
 
 ## Quick start
 
