@@ -219,6 +219,23 @@
   \vnolymp@problem@finish
 }
 
+% Editorials. Same heading as a problem, but no limits panel — an editorial
+% restates the problem it discusses, so repeating the limits is noise.
+% Takes one mandatory argument, so the legacy \begin{tutorial}{Name} form used
+% by tutorials.ftl continues to work unchanged.
+\newenvironment{tutorial}[2][]{%
+  \vnolymp@resetkeys
+  \ekvset{vnolymp@problem}{#1}%
+  \ifdefempty{\vnolymp@p@index}{%
+    \stepcounter{vnolympproblem}%
+  }{%
+    \setcounter{vnolympproblem}{\vnolymp@p@index}%
+  }%
+  \vnolymp@renderheader{\arabic{vnolympproblem}}{#2}{}%
+}{%
+  \vnolymp@problem@finish
+}
+
 %% ---------------------------------------------------------------------------
 %% Section headings
 %%

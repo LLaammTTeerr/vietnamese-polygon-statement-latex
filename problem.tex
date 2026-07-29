@@ -1,83 +1,64 @@
-\begin{problem}{${problem.name}}<#--
--->{<#if "stdin" == problem.inputFile><#--
-     --><#if "russian" == language>стандартный ввод<#--
-     --><#elseif "vietnamese" == language>Đầu vào chuẩn<#--
-     --><#else>standard input<#--
-     --></#if><#else>${problem.inputFile}</#if>}<#--
--->{<#if "stdout" == problem.outputFile><#--
-     --><#if "russian" == language>стандартный вывод<#--
-     --><#elseif "vietnamese" == language>Đầu ra chuẩn<#--
-     --><#else>standard output<#--
-     --></#if><#else>${problem.outputFile}</#if>}<#--
---><#assign timeLimit=problem.timeLimit/1000/><#--
---><#if language="russian"><#--
-    --><#if problem.timeLimit%1000!=0||(10<=timeLimit%100&&timeLimit%100<20)||timeLimit%10=0||5<=timeLimit><#--
-        -->{${timeLimit?c} секунд}<#--
-    --><#else><#--
-        --><#if timeLimit%10=1><#--
-            -->{${timeLimit?c} секунда}<#--
-        --><#else><#--
-            -->{${timeLimit?c} секунды}<#--
-        --></#if><#--
-    --></#if><#--
---><#elseif language="vietnamese"><#--
-    -->{${timeLimit?c} giây}<#--
---><#else><#--
-    -->{${timeLimit?c} second<#if (timeLimit!=1)>s</#if>}<#--
---></#if><#--
---><#assign memoryLimit=problem.memoryLimit/1048576/><#--
---><#if language="russian"><#--
-    --><#if problem.memoryLimit%1048576==0&&!(10<=memoryLimit%100&&memoryLimit%100<20)&&2<=memoryLimit%10&&memoryLimit%10<5><#--
-        -->{${memoryLimit?c} мегабайта}
-    <#else><#--
-        -->{${memoryLimit?c} мегабайт}
-    </#if>
-<#else><#--
-    -->{${memoryLimit?c} megabyte<#if (memoryLimit>1)>s</#if>}
-</#if>
- 
-<#if providedStatementsCommands?? && providedStatementsCommands?size != 0><#--
-    --><#list providedStatementsCommands as command><#--
-        -->${command?string}
+<#--
+  problem.tex — Polygon per-problem statement template.
+
+  Emits DATA ONLY. Every user-visible word comes from vnolymp-lang-*.def.
+
+  This is the fix for the worst defect in the package this replaces. The old
+  version translated `stdin` into "Đầu vào chuẩn" here, in Freemarker, and
+  olymp.sty then compared the result against the string "stdin" — a test that
+  could never succeed. Every statement it produced read "Vào từ tệp tin văn
+  bản Đầu vào chuẩn", i.e. "read from the text file Standard input".
+
+  Repairing the comparison would have left the same trap in place. Instead the
+  bare token is emitted and LaTeX decides how to say it, which also deleted the
+  Russian plural-agreement block that used to live here and made English
+  output work with no further change.
+
+  tests/cases/ftl-emits-raw-data enforces this: it fails if any localised
+  string or unit reappears in this file.
+--><#assign timeLimit = problem.timeLimit / 1000 />
+<#assign memoryLimit = problem.memoryLimit / 1048576 />
+\begin{problem}[
+  input  = ${problem.inputFile},
+  output = ${problem.outputFile},
+  time   = ${timeLimit?c},
+  memory = ${memoryLimit?c},
+]{${problem.name}}
+
+<#if providedStatementsCommands?? && providedStatementsCommands?size != 0>
+<#list providedStatementsCommands as command>
+${command?string}
 </#list>
- 
 </#if>
- 
+
 ${problem.legend}
- 
-<#if problem.input?? && (problem.input?length>0)>
+
+<#if problem.input?? && (problem.input?length > 0)>
 \InputFile
 ${problem.input}
- 
 </#if>
-<#if problem.output?? && (problem.output?length>0)>
+<#if problem.output?? && (problem.output?length > 0)>
 \OutputFile
 ${problem.output}
- 
 </#if>
-<#if problem.interaction?? && (problem.interaction?length>0)>
+<#if problem.interaction?? && (problem.interaction?length > 0)>
 \Interaction
 ${problem.interaction}
- 
 </#if>
-<#if problem.scoring?? && (problem.scoring?length>0)>
+<#if problem.scoring?? && (problem.scoring?length > 0)>
 \Scoring
 ${problem.scoring}
- 
 </#if>
-<#if  (problem.sampleTests?size>0)>
-\Example<#if  (problem.sampleTests?size>1)>s</#if>
- 
+<#if (problem.sampleTests?size > 0)>
+\Examples
 \begin{example}
 <#list problem.sampleTests as test>
 \exmpfile{${test.inputFile}}{${test.outputFile}}%
 </#list>
 \end{example}
 </#if>
- 
-<#if (problem.notes??) && (problem.notes?length > 0)>
+<#if problem.notes?? && (problem.notes?length > 0)>
 \Note
 ${problem.notes}
- 
 </#if>
 \end{problem}
