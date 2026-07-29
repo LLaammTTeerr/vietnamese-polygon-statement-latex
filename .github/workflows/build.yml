@@ -34,8 +34,12 @@ jobs:
       # the Vietnamese hook-above characters.
       - name: Install TeX Live fonts not in the image
         run: |
-          tlmgr install sourcesanspro xcharter || \
-            echo "tlmgr install failed; the font check below will report what is missing"
+          # Not tolerated with `|| true`: a swallowed failure made this step go
+          # green while achieving nothing, so "installed but still absent" and
+          # "install failed" looked identical from the public API.
+          tlmgr install sourcesanspro xcharter
+          # Refresh the filename database so kpsewhich sees the new files.
+          mktexlsr
 
       # These three steps EXIT NON-ZERO on anything missing. An earlier version
       # printed "MISSING" and exited 0, so the step went green and its success
@@ -43,16 +47,34 @@ jobs:
       # readable from the public API while job logs are not -- so which of the
       # three fails is itself the diagnosis.
       - name: Check fonts
+        id: fonts
         run: |
           miss=0
+          : > /tmp/missing-fonts
           for f in lmroman10-regular.otf lmroman10-bold.otf lmroman10-italic.otf \
                    lmmono10-regular.otf lmmonolt10-bold.otf latinmodern-math.otf \
                    SourceSansPro-Regular.otf SourceSansPro-Semibold.otf \
                    SourceSansPro-Bold.otf XCharter-Roman.otf; do
             if kpsewhich "$f" >/dev/null; then echo "ok      $f"
-            else echo "MISSING $f"; miss=1; fi
+            else echo "MISSING $f"; echo "$f" >> /tmp/missing-fonts; miss=1; fi
           done
           exit $miss
+
+      # Artifact names are readable from the public API; job logs are not.
+      - name: Publish missing font names
+        if: failure() && steps.fonts.outcome == 'failure'
+        run: |
+          names=$(sed 's/\.otf$//' /tmp/missing-fonts | tr '\n' '_' | sed 's/_$//')
+          mkdir -p font-marker && cp /tmp/missing-fonts font-marker/
+          echo "FONT_MARKER=missing-fonts__${names}" >> "$GITHUB_ENV"
+
+      - name: Upload missing-font marker
+        if: failure() && env.FONT_MARKER != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.FONT_MARKER }}
+          path: font-marker/
+          if-no-files-found: ignore
 
       - name: Check packages
         run: |
