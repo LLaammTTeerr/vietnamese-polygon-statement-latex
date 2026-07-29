@@ -34,12 +34,21 @@ jobs:
       # the Vietnamese hook-above characters.
       - name: Install TeX Live fonts not in the image
         run: |
-          # Not tolerated with `|| true`: a swallowed failure made this step go
-          # green while achieving nothing, so "installed but still absent" and
-          # "install failed" looked identical from the public API.
+          # tlmgr refuses to install when the image's TeX Live is older than the
+          # remote repository, which is the usual reason it fails inside a
+          # container. Updating itself first is tolerated because it is a
+          # remedy, not a requirement -- if it is unnecessary it is harmless.
+          tlmgr update --self || echo "tlmgr update --self skipped"
+
+          # The install itself is NOT tolerated. A swallowed failure made this
+          # step go green while achieving nothing, so "installed but still
+          # absent" and "install failed" looked identical from the public API.
           tlmgr install sourcesanspro xcharter
-          # Refresh the filename database so kpsewhich sees the new files.
+
+          # Refresh the filename database so kpsewhich sees the new files, and
+          # prove the font actually arrived rather than assuming it did.
           mktexlsr
+          kpsewhich SourceSansPro-Regular.otf
 
       # These three steps EXIT NON-ZERO on anything missing. An earlier version
       # printed "MISSING" and exited 0, so the step went green and its success
