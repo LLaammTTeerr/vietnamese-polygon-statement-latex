@@ -1,0 +1,146 @@
+%%
+%% vnolymp.sty — contest statement typesetting, Vietnamese first.
+%%
+%% A rewrite of the Vietnamese fork of olymp.sty. See
+%% docs/superpowers/specs/2026-07-29-vietnamese-statement-template-design.md
+%% for the design and the defect inventory that motivated it.
+%%
+%% Requires a Unicode engine (LuaLaTeX). Vietnamese needs stacked diacritics
+%% that 8-bit font encodings handle poorly, and the font coverage this package
+%% depends on is OpenType — see spec §3.1.
+%%
+%% Load order matters and is enforced here:
+%%   options → language → style → problem → example → compat
+%%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{vnolymp}[2026/07/29 v0.1 Vietnamese contest statements]
+
+%% ---------------------------------------------------------------------------
+%% Options
+%%
+%% Each option pair is a single conditional. Defaults are set before
+%% \ProcessOptions so an unspecified option keeps the documented default.
+%% ---------------------------------------------------------------------------
+
+% colour mode: `color` (default) tints with the accent; `print` renders in
+% greys so a black-and-white photocopy stays legible.
+\newif\ifvnolymp@color        \vnolymp@colortrue
+\DeclareOption{color}{\vnolymp@colortrue}
+\DeclareOption{print}{\vnolymp@colorfalse}
+
+% document mode: `booklet` (default) adds a cover page and running head;
+% `standalone` suppresses both, for a one-problem PDF.
+\newif\ifvnolymp@booklet      \vnolymp@booklettrue
+\DeclareOption{booklet}{\vnolymp@booklettrue}
+\DeclareOption{standalone}{\vnolymp@bookletfalse}
+
+% language: selects which vnolymp-lang-*.def is loaded.
+\def\vnolymp@lang@name{vi}
+\DeclareOption{vietnamese}{\def\vnolymp@lang@name{vi}}
+\DeclareOption{english}{\def\vnolymp@lang@name{en}}
+
+% page breaks: whether each problem starts a fresh page.
+\newif\ifvnolymp@pagebreak    \vnolymp@pagebreaktrue
+\DeclareOption{pagebreak}{\vnolymp@pagebreaktrue}
+\DeclareOption{nopagebreak}{\vnolymp@pagebreakfalse}
+
+% hidelimits: suppress the limits panel entirely.
+%
+% This replaces the legacy `hidesetting`, which existed only to dodge defect
+% #3 — olymp.sty used an undefined \@feedback, so any document that did NOT
+% pass hidesetting failed to build, and every document that did pass it
+% silently lost its time and memory limits. Nothing here depends on it now;
+% it is a genuine presentation choice.
+\newif\ifvnolymp@hidelimits   \vnolymp@hidelimitsfalse
+\DeclareOption{hidelimits}{\vnolymp@hidelimitstrue}
+
+% Deprecated alias, kept so existing documents still load.
+\DeclareOption{hidesetting}{%
+  \PackageWarning{vnolymp}{%
+    Option `hidesetting' is deprecated; use `hidelimits' instead.\MessageBreak
+    It existed to work around an undefined \string\@feedback\space in the old
+    olymp.sty,\MessageBreak which no longer applies%
+  }%
+  \vnolymp@hidelimitstrue
+}
+
+% The legacy `landscape` option is deliberately not provided. It set
+% \@landscapetrue against an \if@landscape that was never declared with
+% \newif, so it could only ever crash — nothing can depend on it.
+\DeclareOption{landscape}{%
+  \PackageError{vnolymp}{Option `landscape' is not supported}{%
+    The old olymp.sty accepted this option but crashed immediately, so no
+    document can have relied on it. Remove it.%
+  }%
+}
+
+\DeclareOption*{%
+  \PackageWarning{vnolymp}{Unknown option `\CurrentOption' ignored}%
+}
+\ProcessOptions\relax
+
+%% ---------------------------------------------------------------------------
+%% Language
+%%
+%% Every user-visible string lives in vnolymp-lang-<name>.def and nowhere else.
+%% No module below may hardcode prose.
+%%
+%% This separation is the structural fix for defect #1: the old \InputFile
+%% mixed Vietnamese prose, a string comparison and formatting in six lines,
+%% and the comparison was wrong because a different file had already
+%% translated the value being compared.
+%% ---------------------------------------------------------------------------
+
+% Define one string. Used once per line in the language files, which is what
+% lets the key-parity test compare the two files textually.
+\newcommand{\vnolymp@lang}[2]{%
+  \expandafter\gdef\csname vnolymp@kw@#1\endcsname{#2}%
+}
+
+% Retrieve one string, failing loudly on a typo rather than expanding to
+% nothing and leaving a silent gap on the page.
+\newcommand{\vnolymp@kw}[1]{%
+  \ifcsname vnolymp@kw@#1\endcsname
+    \csname vnolymp@kw@#1\endcsname
+  \else
+    \PackageError{vnolymp}{Unknown language key `#1'}{%
+      No such string is defined in vnolymp-lang-\vnolymp@lang@name.def.
+      Check the spelling, or add the key to BOTH language files — the
+      key-parity test requires them to stay in step.%
+    }%
+  \fi
+}
+
+\InputIfFileExists{vnolymp-lang-\vnolymp@lang@name.def}{}{%
+  \PackageError{vnolymp}{Missing language file}{%
+    vnolymp-lang-\vnolymp@lang@name.def could not be found.%
+  }%
+}
+
+%% ---------------------------------------------------------------------------
+%% Contest metadata
+%%
+%% Stored here rather than in the style module because it is data, not
+%% presentation; the cover page and running head consume it.
+%% ---------------------------------------------------------------------------
+
+\newcommand{\vnolymp@contest@name}{}
+\newcommand{\vnolymp@contest@place}{}
+\newcommand{\vnolymp@contest@date}{}
+
+\newcommand{\contest}[3]{%
+  \renewcommand{\vnolymp@contest@name}{#1}%
+  \renewcommand{\vnolymp@contest@place}{#2}%
+  \renewcommand{\vnolymp@contest@date}{#3}%
+}
+
+%% ---------------------------------------------------------------------------
+%% Modules
+%% ---------------------------------------------------------------------------
+
+\InputIfFileExists{vnolymp-style.def}{}{}
+\InputIfFileExists{vnolymp-problem.def}{}{}
+\InputIfFileExists{vnolymp-example.def}{}{}
+\InputIfFileExists{vnolymp-compat.def}{}{}
+
+\endinput

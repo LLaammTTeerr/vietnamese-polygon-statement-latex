@@ -1,0 +1,10 @@
+% Preamble for the new template. %%OPTS%% is substituted by tests/run.sh.
+\documentclass[11pt, a4paper, oneside]{article}
+\usepackage[%%OPTS%%]{vnolymp}
+
+% Exposes the internal string lookup so language cases can assert on rendered
+% output rather than on the .def source. Test scaffolding only — statements
+% never call this.
+\makeatletter
+\newcommand{\kwtest}[1]{\vnolymp@kw{#1}}
+\makeatother

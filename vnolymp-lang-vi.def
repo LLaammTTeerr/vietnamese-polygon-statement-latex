@@ -1,0 +1,69 @@
+%%
+%% vnolymp-lang-vi.def — Vietnamese strings.
+%%
+%% Wording follows VOI / national-olympiad usage.
+%%
+%% Rules for this file:
+%%   * One \vnolymp@lang per line. The key-parity test compares this file
+%%     against vnolymp-lang-en.def textually, so a key added here without its
+%%     English counterpart fails the build.
+%%   * Every user-visible string in the package belongs here. No module may
+%%     hardcode prose.
+%%   * Sentence case, not Title Case. The file this replaces had "Chấm Điểm"
+%%     alongside "Tính điểm" for the same concept.
+%%
+\ProvidesFile{vnolymp-lang-vi.def}[2026/07/29 Vietnamese strings for vnolymp]
+
+%% Section headings ----------------------------------------------------------
+%%
+%% These emit a heading and nothing more. The legacy \InputFile also printed
+%% "Vào từ thiết bị vào chuẩn (bàn phím):", which the limits panel now shows
+%% directly above; there is deliberately no key for that sentence.
+
+\vnolymp@lang{section.input}{Dữ liệu}
+\vnolymp@lang{section.output}{Kết quả}
+\vnolymp@lang{section.constraints}{Ràng buộc}
+\vnolymp@lang{section.scoring}{Chấm điểm}
+\vnolymp@lang{section.examples}{Ví dụ}
+\vnolymp@lang{section.explanation}{Giải thích}
+\vnolymp@lang{section.notes}{Chú ý}
+\vnolymp@lang{section.interaction}{Tương tác}
+
+%% Limits panel --------------------------------------------------------------
+
+\vnolymp@lang{panel.input}{Tệp vào}
+\vnolymp@lang{panel.output}{Tệp ra}
+\vnolymp@lang{panel.time}{Giới hạn thời gian}
+\vnolymp@lang{panel.memory}{Giới hạn bộ nhớ}
+\vnolymp@lang{panel.author}{Tác giả}
+\vnolymp@lang{panel.origin}{Nguồn}
+
+%% I/O values ----------------------------------------------------------------
+%%
+%% Shown as prose rather than the raw token. A named file is printed verbatim
+%% instead and needs no key.
+
+\vnolymp@lang{value.stdin}{Đầu vào chuẩn}
+\vnolymp@lang{value.stdout}{Đầu ra chuẩn}
+
+%% Units ---------------------------------------------------------------------
+%%
+%% Vietnamese does not inflect for number, so one form serves any count. The
+%% package still passes the count so that languages which do inflect can use
+%% it without changing any call site.
+
+\vnolymp@lang{unit.seconds}{giây}
+\vnolymp@lang{unit.megabytes}{MB}
+
+%% Words ---------------------------------------------------------------------
+
+\vnolymp@lang{word.problem}{Bài}
+\vnolymp@lang{word.points}{điểm}
+
+%% Page furniture ------------------------------------------------------------
+
+\vnolymp@lang{page.number}{Trang}
+\vnolymp@lang{page.of}{trên}
+\vnolymp@lang{page.blank}{Trang này được chủ ý bỏ trống}
+
+\endinput

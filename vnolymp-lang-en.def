@@ -1,0 +1,50 @@
+%%
+%% vnolymp-lang-en.def — English strings.
+%%
+%% Mirrors vnolymp-lang-vi.def key for key. The key-parity test compares the
+%% two files textually, so they cannot drift.
+%%
+\ProvidesFile{vnolymp-lang-en.def}[2026/07/29 English strings for vnolymp]
+
+%% Section headings ----------------------------------------------------------
+
+\vnolymp@lang{section.input}{Input}
+\vnolymp@lang{section.output}{Output}
+\vnolymp@lang{section.constraints}{Constraints}
+\vnolymp@lang{section.scoring}{Scoring}
+\vnolymp@lang{section.examples}{Examples}
+\vnolymp@lang{section.explanation}{Explanation}
+\vnolymp@lang{section.notes}{Notes}
+\vnolymp@lang{section.interaction}{Interaction}
+
+%% Limits panel --------------------------------------------------------------
+
+\vnolymp@lang{panel.input}{Input file}
+\vnolymp@lang{panel.output}{Output file}
+\vnolymp@lang{panel.time}{Time limit}
+\vnolymp@lang{panel.memory}{Memory limit}
+\vnolymp@lang{panel.author}{Author}
+\vnolymp@lang{panel.origin}{Origin}
+
+%% I/O values ----------------------------------------------------------------
+
+\vnolymp@lang{value.stdin}{standard input}
+\vnolymp@lang{value.stdout}{standard output}
+
+%% Units ---------------------------------------------------------------------
+
+\vnolymp@lang{unit.seconds}{s}
+\vnolymp@lang{unit.megabytes}{MB}
+
+%% Words ---------------------------------------------------------------------
+
+\vnolymp@lang{word.problem}{Problem}
+\vnolymp@lang{word.points}{points}
+
+%% Page furniture ------------------------------------------------------------
+
+\vnolymp@lang{page.number}{Page}
+\vnolymp@lang{page.of}{of}
+\vnolymp@lang{page.blank}{This page is intentionally left blank}
+
+\endinput

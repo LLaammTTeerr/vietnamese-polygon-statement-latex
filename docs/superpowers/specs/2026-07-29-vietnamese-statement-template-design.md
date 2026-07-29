@@ -210,6 +210,15 @@ with `expkv-def`:
 \end{problem}
 ```
 
+Problems are headed **"Bài N."** with `N` from an automatic counter, approved
+by the author. This supersedes the lettered `A.` form shown in the design
+mockup of §7.3. An optional `index` key overrides the counter, for a standalone
+PDF of one problem out of a set:
+
+```latex
+\begin{problem}[index = 5, time = 1, memory = 256]{Bài lẻ}   % → Bài 5.
+```
+
 `time` is in seconds and `memory` in mebibytes (rendered "MB", following
 contest convention), both as bare numbers. Units and
 their Vietnamese or English rendering are supplied by the language layer.
@@ -232,6 +241,13 @@ Section commands are unchanged in name: `\InputFile`, `\OutputFile`,
 `\Constraints`, `\Examples`, `\Note`, `\Explanation`, `\Interaction`,
 `\Scoring`. `\Explanation` gains the `\section{}` it is missing (defect #2).
 
+**Section commands emit a heading and nothing else.** Approved by the author.
+The legacy `\InputFile` also injected a sentence — "Vào từ thiết bị vào chuẩn
+(bàn phím):" — which the limits panel now duplicates directly above it. The
+language files therefore carry no I/O sentence strings at all, and the entire
+`\IfStrEq` branch that defect #1 lived in disappears rather than being
+repaired.
+
 Subtasks unify into one environment, replacing both `\Subtask` and
 `\SubtaskWithScore`. **Flat form only** — approved by the author:
 
@@ -243,21 +259,15 @@ Subtasks unify into one environment, replacing both `\Subtask` and
 \end{subtasks}
 ```
 
-A constraint *matrix* — one column per constrained variable — is deliberately
-**not** given dedicated API surface. It is rare enough that the cost of a
-`columns` key outweighs the benefit. Instead a thin styling wrapper is
-provided, inside which the author writes an ordinary `tabular`:
+A constraint *matrix* — one column per constrained variable — gets **no API
+surface at all**. Approved by the author after a wrapper environment was
+proposed and rejected. When a matrix is needed the author writes an ordinary
+`tabular`, exactly as before. The rationale is that matrices are rare, and a
+wrapper that only sometimes fits is worse than no wrapper: it would have to be
+either restrictive or so thin it earns nothing.
 
-```latex
-\begin{subtasktable}{$N$ & $M$ & $a_{x,y}$}
-  ... ordinary tabular rows ...
-\end{subtasktable}
-```
-
-The wrapper supplies the rules, tinting, header treatment and spacing so a
-hand-written matrix still matches the rest of the document; the author retains
-full control of the columns. This keeps the common case one line per subtask
-and the rare case fully general, without a mode flag.
+Consequence, recorded honestly: a hand-written matrix will not automatically
+match the document's rules and tinting. That is the accepted cost.
 
 Samples keep their current commands:
 
@@ -292,28 +302,38 @@ A `sed` migration script and a note in the authoring guide cover these.
 `vnolymp-lang-vi.def` holds every user-visible string. VOI / national-olympiad
 wording, per the author's choice:
 
-| Key | Vietnamese |
-|---|---|
-| section: input | Dữ liệu |
-| section: output | Kết quả |
-| section: constraints | Ràng buộc |
-| section: scoring | Chấm điểm |
-| section: examples | Ví dụ |
-| section: explanation | Giải thích |
-| section: notes | Chú ý |
-| section: interaction | Tương tác |
-| panel: input file | Tệp vào |
-| panel: output file | Tệp ra |
-| panel: time limit | Giới hạn thời gian |
-| panel: memory limit | Giới hạn bộ nhớ |
-| panel: author | Tác giả |
-| panel: origin | Nguồn |
-| value: stdin | Đầu vào chuẩn |
-| value: stdout | Đầu ra chuẩn |
-| unit: seconds | giây |
-| unit: megabytes | MB |
-| points | điểm |
-| footer | Trang {n} trên {m} |
+| Key | Vietnamese | English |
+|---|---|---|
+| `section.input` | Dữ liệu | Input |
+| `section.output` | Kết quả | Output |
+| `section.constraints` | Ràng buộc | Constraints |
+| `section.scoring` | Chấm điểm | Scoring |
+| `section.examples` | Ví dụ | Examples |
+| `section.explanation` | Giải thích | Explanation |
+| `section.notes` | Chú ý | Notes |
+| `section.interaction` | Tương tác | Interaction |
+| `panel.input` | Tệp vào | Input file |
+| `panel.output` | Tệp ra | Output file |
+| `panel.time` | Giới hạn thời gian | Time limit |
+| `panel.memory` | Giới hạn bộ nhớ | Memory limit |
+| `panel.author` | Tác giả | Author |
+| `panel.origin` | Nguồn | Origin |
+| `value.stdin` | Đầu vào chuẩn | standard input |
+| `value.stdout` | Đầu ra chuẩn | standard output |
+| `unit.seconds` | giây | s |
+| `unit.megabytes` | MB | MB |
+| `word.problem` | Bài | Problem |
+| `word.points` | điểm | points |
+| `page.number` | Trang | Page |
+| `page.of` | trên | of |
+| `page.blank` | Trang này được chủ ý bỏ trống | This page is intentionally left blank |
+
+`value.stdin` / `value.stdout` are **translated prose**, approved by the
+author: the panel shows "Tệp vào — Đầu vào chuẩn", not the raw token. A named
+file is shown verbatim instead.
+
+Strings are defined one per line as `\vnolymp@lang{key}{value}`, which is what
+makes the key-parity test a simple textual comparison of the two files.
 
 Capitalisation is normalised — the current file's "Chấm Điểm" is corrected.
 The untranslated strings listed in §1.2 are translated. Dead keys are deleted.
@@ -386,8 +406,9 @@ Libertinus Math.
 ### 7.3 Components
 
 - **Problem header** — full-width `tcolorbox`, `#A8122C` fill, white Source Sans
-  semibold, index and title flush left, points flush right. In `print` mode:
-  13 % black fill, black text.
+  semibold, `Bài N. Tên bài` flush left, points flush right. In `print` mode:
+  13 % black fill, black text. (The mockup that informed this design showed a
+  lettered `A.` index; the author subsequently chose numbering — see §5.1.)
 - **Limits panel** — tinted box beneath the header, a genuine 2×2 `tabular`
   grid. The specimen exposed that `\hfill` strands the right-hand label against
   its own value; alignment must be tabular, not glue.

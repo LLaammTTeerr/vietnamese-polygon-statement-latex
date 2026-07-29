@@ -40,7 +40,9 @@ else
 fi
 
 total=0; passed=0
-declare -a FAILED_CASES
+# Must be initialised: under `set -u` an empty, never-assigned array is
+# unbound, so a fully passing run would itself fail.
+FAILED_CASES=()
 
 bold=$'\e[1m'; red=$'\e[31m'; grn=$'\e[32m'; dim=$'\e[2m'; off=$'\e[0m'
 [[ -t 1 ]] || { bold=""; red=""; grn=""; dim=""; off=""; }
