@@ -24,14 +24,54 @@ jobs:
           apt-get update
           apt-get install -y --no-install-recommends poppler-utils python3
 
+      # Cheap, and it turns the commonest CI-only failure -- a font or package
+      # the container happens not to ship -- into a named missing item rather
+      # than a confusing assertion failure further down.
+      - name: Check environment
+        run: |
+          lualatex --version | head -1
+          echo "--- fonts ---"
+          for f in lmroman10-regular.otf lmmono10-regular.otf lmmonolt10-bold.otf \
+                   latinmodern-math.otf SourceSansPro-Regular.otf \
+                   SourceSansPro-Semibold.otf SourceSansPro-Bold.otf \
+                   XCharter-Roman.otf; do
+            printf '%-32s %s\n' "$f" "$(kpsewhich $f >/dev/null && echo ok || echo MISSING)"
+          done
+          echo "--- packages ---"
+          for p in tcolorbox fvextra expkv-def unicode-math hhline tabularx \
+                   colortbl lastpage microtype fancyhdr etoolbox xstring; do
+            printf '%-14s %s\n' "$p" "$(kpsewhich $p.sty >/dev/null && echo ok || echo MISSING)"
+          done
+          echo "--- tools ---"
+          for t in pdftotext pdfinfo python3 make bash; do
+            printf '%-10s %s\n' "$t" "$(command -v $t || echo MISSING)"
+          done
+
       - name: Run test suite
         run: tests/run.sh
 
       - name: Build samples
         run: make samples
 
+      # Printed inline rather than only uploaded as an artifact, because
+      # downloading artifacts needs repository admin rights and the log is the
+      # one thing anyone debugging a red build actually needs to see.
+      - name: Show LaTeX logs on failure
+        if: failure()
+        run: |
+          for f in $(find build/tests samples -name '*.log' 2>/dev/null); do
+            if grep -q '^!' "$f"; then
+              echo "::group::$f"
+              grep -m3 -A8 '^!' "$f"
+              echo "::endgroup::"
+            fi
+          done
+
+      # NOT if: always(). Paired with if-no-files-found: error, an always-run
+      # upload fails a second time whenever an earlier step skipped the sample
+      # build -- which buries the actual failure under a spurious one.
       - name: Upload PDFs
-        if: always()
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: sample-pdfs
