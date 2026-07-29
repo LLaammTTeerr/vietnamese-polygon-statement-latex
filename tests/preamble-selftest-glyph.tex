@@ -1,0 +1,7 @@
+% Harness self-test preamble. Deliberately selects XCharter, which lacks all
+% 24 Vietnamese hook-above (dấu hỏi) characters, so the missing-glyph detector
+% has a known-bad input to prove itself against. Not part of the template.
+\documentclass[11pt, a4paper]{article}
+\usepackage{fontspec}
+\setmainfont{XCharter-Roman.otf}
+\newcommand{\contest}[3]{}
