@@ -167,7 +167,9 @@
     width        = \linewidth,
   ]
     \color{vnolymp@head@fg}\vnolymp@uib\huge
-    \vnolymp@kw{word.problem}~#1. #2%
+    % "Bài N." only when the document holds more than one problem; see
+    % \vnolymp@ifnumbered in vnolymp-problem.def.
+    \vnolymp@ifnumbered{\vnolymp@kw{word.problem}~#1. }{}#2%
     \ifblank{#3}{}{\hfill #3~\vnolymp@kw{word.points}}%
   \end{tcolorbox}%
   \par

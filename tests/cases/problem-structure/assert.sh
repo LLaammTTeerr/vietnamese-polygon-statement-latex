@@ -5,10 +5,12 @@ assert_compiles
 assert_no_undefined
 assert_no_missing_glyphs
 
-# Header: "Bài 1." from the auto counter, with points.
-assert_pdf_contains "Bài 1."
+# Header: title and points, but NO "Bài 1." — this document holds a single
+# problem, and a number exists to tell problems apart. See booklet-cover for
+# the multi-problem side of the same rule.
 assert_pdf_contains "Dãy con tăng dài nhất"
 assert_pdf_contains "100"
+assert_pdf_not_contains "Bài 1."
 
 # Limits panel — defect #3 made these silently vanish for every statement
 # that used the hidesetting workaround, which was every statement.

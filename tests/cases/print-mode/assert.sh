@@ -7,7 +7,9 @@ assert_compiles
 assert_no_undefined
 assert_no_missing_glyphs
 
-assert_pdf_contains "Bài 1."
+# Single problem, so no "Bài N." — see problem-structure.
+assert_pdf_contains "Bài in trắng đen"
+assert_pdf_not_contains "Bài 1."
 assert_pdf_contains "Giới hạn thời gian"
 assert_layout_matches '^ *1 +40% +'
 # Sample table headings are Vietnamese prose, not the raw token.

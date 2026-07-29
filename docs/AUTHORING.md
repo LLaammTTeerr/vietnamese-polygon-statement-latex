@@ -108,8 +108,20 @@ units drifting between problems.
 Wrap any value containing a comma or equals sign in braces, as with `author`
 above.
 
-Problems are numbered automatically as "Bài 1.", "Bài 2.", …. `index` overrides
-the counter and resynchronises it, so `index = 5` is followed by 6, 7, ….
+### Numbering
+
+A problem is headed "Bài N." **only when the document contains more than one
+problem.** A single-problem PDF shows just the title: a number exists to tell
+problems apart, and with one problem there is nothing to tell it apart from.
+
+The count comes from the `.aux` file, so — like the page total and the cover
+table — it settles on the **second pass**. On a first-ever run nothing is
+numbered.
+
+Editorials count too: two `tutorial` environments are numbered, one is not.
+
+`index` overrides the counter and resynchronises it, so `index = 5` is followed
+by 6, 7, ….
 
 ---
 

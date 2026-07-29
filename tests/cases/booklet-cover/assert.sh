@@ -16,6 +16,13 @@ assert_pdf_contains "Kỳ thi thử"
 assert_layout_matches '1 +Bài thứ nhất.*1 giây.*256 MB.*100'
 assert_layout_matches '2 +Bài thứ hai.*2 giây.*512 MB.*50'
 
+# Two problems, so both ARE numbered. This is the other half of the rule
+# problem-structure pins: numbering appears only when there is more than one
+# problem to tell apart. The count comes from the .aux, so it also proves the
+# second pass is doing its job.
+assert_pdf_contains "Bài 1."
+assert_pdf_contains "Bài 2."
+
 # Running head and footer, using page.number/page.of — keywords the old
 # package defined and then never referenced.
 assert_pdf_contains "Trang"

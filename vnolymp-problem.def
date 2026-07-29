@@ -102,7 +102,7 @@
   \par\bigskip\noindent
   \begingroup
     \bfseries\Large
-    \vnolymp@kw{word.problem}~#1. #2%
+    \vnolymp@ifnumbered{\vnolymp@kw{word.problem}~#1. }{}#2%
     \ifblank{#3}{}{\hfill #3~\vnolymp@kw{word.points}}%
   \endgroup
   \par\medskip
@@ -201,8 +201,27 @@
 
 \newcommand{\vnolymp@coverrows}{}
 
+%% How many problems the document contains, counted from the .aux entries
+%% written by the previous run.
+%%
+%% "Bài N." is printed only when there is more than one problem: a number
+%% distinguishes problems from each other, and with a single problem there is
+%% nothing to distinguish it from. Like the cover table and the page total,
+%% this settles on the second pass — on the first there is no .aux yet, the
+%% count is zero, and nothing is numbered.
+\newcounter{vnolymp@totalproblems}
+
+\newcommand{\vnolymp@ifnumbered}{%
+  \ifnum\value{vnolymp@totalproblems}>1\relax
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi
+}
+
 % #1 index  #2 title  #3 time  #4 timetext  #5 memory  #6 memorytext  #7 points
 \newcommand{\vnolymp@problementry}[7]{%
+  \stepcounter{vnolymp@totalproblems}%
   \g@addto@macro\vnolymp@coverrows{%
     #1 & #2 &
     \vnolymp@coverlimit{#3}{#4}{\vnolymp@timename} &
@@ -215,6 +234,15 @@
 % the correct test — unlike in \vnolymp@buildpanel, where they are macros.
 \newcommand{\vnolymp@coverlimit}[3]{%
   \ifblank{#2}{\ifblank{#1}{---}{#3{#1}}}{#2}%
+}
+
+%% A tutorial is headed like a problem, so it counts towards the numbering
+%% decision — but it contributes no cover row, since an editorial booklet has
+%% no limits to tabulate.
+\newcommand{\vnolymp@tutorialentry}{\stepcounter{vnolymp@totalproblems}}
+
+\newcommand{\vnolymp@recordtutorial}{%
+  \protected@write\@auxout{}{\string\vnolymp@tutorialentry}%
 }
 
 \newcommand{\vnolymp@recordproblem}[1]{%
@@ -277,6 +305,7 @@
     \setcounter{vnolympproblem}{\vnolymp@p@index}%
   }%
   \vnolymp@renderheader{\arabic{vnolympproblem}}{#2}{}%
+  \vnolymp@recordtutorial
 }{%
   \vnolymp@problem@finish
 }

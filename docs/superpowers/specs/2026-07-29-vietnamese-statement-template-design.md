@@ -214,8 +214,22 @@ with `expkv-def`:
 
 Problems are headed **"Bài N."** with `N` from an automatic counter, approved
 by the author. This supersedes the lettered `A.` form shown in the design
-mockup of §7.3. An optional `index` key overrides the counter, for a standalone
-PDF of one problem out of a set:
+mockup of §7.3.
+
+The heading is numbered **only when the document contains more than one
+problem** — approved by the author, who observed that a number makes sense for
+a contest and not for a single statement. The count is taken from the `.aux`
+entries already collected for the cover table (§7.3), so it settles on the
+second pass; `tutorial` environments contribute to the count without
+contributing a cover row.
+
+This is deliberately keyed to the actual count rather than to the
+`booklet`/`standalone` option, because the two disagree:
+`samples/kitchen-sink` holds two problems in `standalone` mode and should be
+numbered.
+
+An optional `index` key overrides the counter, for a standalone PDF of one
+problem out of a set:
 
 ```latex
 \begin{problem}[index = 5, time = 1, memory = 256]{Bài lẻ}   % → Bài 5.
