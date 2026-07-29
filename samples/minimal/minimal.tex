@@ -1,0 +1,32 @@
+% The smallest useful statement: metadata, the four core sections, one sample.
+% Standalone mode, so no cover page or running head.
+\documentclass[11pt, a4paper, oneside]{article}
+\usepackage[vietnamese, color, standalone]{vnolymp}
+
+\begin{document}
+
+\begin{problem}[input = stdin, output = stdout, time = 1, memory = 256]{Tổng dãy số}
+
+Cho dãy số nguyên $a_1, a_2, \dots, a_n$. Hãy tính tổng của dãy.
+
+\InputFile
+Dòng đầu chứa số nguyên $n$. Dòng thứ hai chứa $n$ số nguyên.
+
+\OutputFile
+Một số nguyên duy nhất là tổng của dãy.
+
+\begin{subtasks}
+  \subtask{40}{$n \le 100$}
+  \subtask{60}{Không có ràng buộc gì thêm}
+\end{subtasks}
+
+\Examples
+\begin{example}
+\exmpfile{ex.in}{ex.out}%
+\end{example}
+
+\Explanation
+Tổng của $1$, $2$ và $3$ bằng $6$.
+
+\end{problem}
+\end{document}

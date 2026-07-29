@@ -1,0 +1,49 @@
+name: build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    # The full TeX Live image, because the package needs LuaLaTeX plus
+    # tcolorbox, fvextra, expkv-def, unicode-math and the Latin Modern and
+    # Source Sans families. A minimal image would fail on fonts, and the
+    # missing-glyph check would turn that into a confusing test failure rather
+    # than a clear missing-package error.
+    container: texlive/texlive:latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install test dependencies
+        # pdftotext and pdfinfo drive the content assertions; python3 strips
+        # Freemarker comments for the ftl-emits-raw-data lint.
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends poppler-utils python3
+
+      - name: Run test suite
+        run: tests/run.sh
+
+      - name: Build samples
+        run: make samples
+
+      - name: Upload PDFs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sample-pdfs
+          path: build/samples/*.pdf
+          if-no-files-found: error
+
+      - name: Upload logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-logs
+          path: |
+            build/tests/**/*.log
+            samples/**/*.log
+          if-no-files-found: ignore

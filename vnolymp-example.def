@@ -147,14 +147,31 @@
   \hline
 }
 
+%% Inline sample data is NOT supported, and says so rather than failing
+%% obscurely.
+%%
+%% \exmp{...}{...} cannot work the way it appears to: LaTeX tokenises a macro's
+%% arguments before the macro body runs, so by the time a Verbatim environment
+%% inside could change catcodes, the content has already been read with normal
+%% ones. The failure is "Forbidden control sequence found while scanning use of
+%% \FV@BeginScanning", which says nothing useful to a statement author.
+%%
+%% The old package sidestepped this by making the enclosing environment set
+%% \obeylines and \obeyspaces before the arguments were read. That is
+%% incompatible with the current bordered table, where a stray \par inside a
+%% cell breaks the alignment.
+%%
+%% Sample data belongs in files regardless: it is what a Polygon export
+%% produces, and it is what the checker and the judge read, so keeping it in
+%% one place means the statement cannot disagree with the tests.
 \newcommand{\exmp}[2]{%
-  % \stepcounter must sit inside \noalign: a bare one opens the row's first
-  % cell, after which \rowcolor -- which is itself a \noalign -- is misplaced.
-  \noalign{\stepcounter{vnolymp@samplerow}}%
-  \vnolymp@zebrarow
-  \vnolymp@samplecell{\begin{Verbatim}[numbers=left,numbersep=4.5mm]#1\end{Verbatim}} &
-  \vnolymp@samplecell{\begin{Verbatim}#2\end{Verbatim}}\\
-  \hline
+  \PackageError{vnolymp}{Inline sample data is not supported}{%
+    Use \string\exmpfile{<input file>}{<output file>} instead, and put the
+    sample\MessageBreak data in files beside the statement.\MessageBreak
+    \MessageBreak
+    Verbatim content cannot be passed as a macro argument, so
+    \string\exmp\MessageBreak cannot preserve your data byte for byte.%
+  }%
 }
 
 %% examplewide — input and output stacked, for data too wide to halve.
