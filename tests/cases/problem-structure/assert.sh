@@ -49,8 +49,12 @@ assert_layout_matches '^ *1 +30% +'
 assert_layout_matches '^ *2 +30% +'
 assert_layout_matches '^ *3 +40% +'
 
-# Sample block: headings name the stream the way the judge does, and the data
-# survives verbatim.
-assert_pdf_contains "stdin"
-assert_pdf_contains "stdout"
+# Sample table: headings are Vietnamese prose matching the limits panel (the
+# raw stdin/stdout token was used in an earlier design), and the data survives
+# verbatim. "Đầu vào chuẩn" is asserted above for the panel; here we pin the
+# data itself and the line numbering.
 assert_pdf_contains "1 2 3"
+# Layout mode puts both columns on one line, so these anchor at the start only:
+# "<lineno> <input data> ... <output data>".
+assert_layout_matches '^ *1 +3 +.*6'
+assert_layout_matches '^ *2 +1 2 3'

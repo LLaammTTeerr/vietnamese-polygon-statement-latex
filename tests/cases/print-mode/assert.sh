@@ -10,4 +10,5 @@ assert_no_missing_glyphs
 assert_pdf_contains "Bài 1."
 assert_pdf_contains "Giới hạn thời gian"
 assert_layout_matches '^ *1 +40% +'
-assert_pdf_contains "stdin"
+# Sample table headings are Vietnamese prose, not the raw token.
+assert_pdf_contains "Đầu vào chuẩn"

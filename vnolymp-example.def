@@ -1,114 +1,195 @@
 %%
 %% vnolymp-example.def — sample test blocks.
 %%
-%% Structure only; vnolymp-style.def supplies the visual treatment through the
-%% \vnolymp@rendersample hook.
+%% Bordered two-column table. Line numbers sit OUTSIDE the frame, to its left,
+%% under no heading, and number the input lines.
 %%
 \ProvidesFile{vnolymp-example.def}[2026/07/29 Sample tests for vnolymp]
 
 \RequirePackage{fvextra}
+\RequirePackage{array}
+\RequirePackage{hhline}
 
 %% Sample data is verbatim and must reproduce byte for byte.
 %%
 %% breaklines/breakanywhere fix a real defect: the old package typeset samples
 %% with \verbatiminput inside a fixed-width tabular minipage, which cannot
 %% wrap, so any sample line longer than the column silently ran past the
-%% margin. The break symbol is deliberately left visible — an unmarked wrap
-%% would be indistinguishable from a newline, which in sample data changes
-%% what the test means.
+%% margin. The break symbol stays visible — an unmarked wrap is
+%% indistinguishable from a newline, and in sample data that changes what the
+%% test means.
+%%
 \fvset{
-  breaklines     = true,
-  breakanywhere  = true,
-  fontsize       = \small,
-  xleftmargin    = 0pt,
-  samepage       = false,
+  breaklines    = true,
+  breakanywhere = true,
+  fontsize      = \small,
+  xleftmargin   = 0pt,
+  samepage      = false,
+  numbers       = none,
 }
 
-%% ---------------------------------------------------------------------------
-%% Render hook — replaced by vnolymp-style.def
+%% Line numbers are placed by fvextra itself, then pushed clear of the table's
+%% left border with a numbersep wider than \tabcolsep. They therefore land
+%% OUTSIDE the frame, in space reserved by indenting the whole table.
 %%
-%% #1 input heading, #2 input body, #3 output heading, #4 output body
-%% ---------------------------------------------------------------------------
+%% Two earlier attempts emitted the numbers as a separate tabular column and
+%% both misaligned them by half a line, because a [t]-aligned minipage and a
+%% fancyvrb block do not put their first baselines in the same place. Letting
+%% fvextra number its own lines makes alignment exact by construction rather
+%% than by calibration.
+\newcommand{\vnolymp@numberedinput}[1]{%
+  \VerbatimInput[numbers = left, numbersep = 4.5mm, firstnumber = 1]{#1}%
+}
 
-\providecommand{\vnolymp@rendersample}[4]{%
-  \par\medskip\noindent
-  \begin{minipage}[t]{0.48\linewidth}
-    {\footnotesize\bfseries #1}\par\smallskip
-    \hrule\smallskip
-    #2%
-  \end{minipage}\hfill
-  \begin{minipage}[t]{0.48\linewidth}
-    {\footnotesize\bfseries #3}\par\smallskip
-    \hrule\smallskip
-    #4%
-  \end{minipage}%
-  \par\medskip
+%% Numbers are reference marks, not data: small and grey so they never compete
+%% with the sample itself. Size does not affect alignment, since fvextra sets
+%% each number on its line's own baseline.
+\renewcommand{\theFancyVerbLine}{%
+  \normalfont\scriptsize\color{black!45}\arabic{FancyVerbLine}%
 }
 
 %% ---------------------------------------------------------------------------
 %% Column headings
 %%
-%% The raw I/O name, as the approved design mockup showed: `stdin`/`stdout`,
-%% or the filename when the problem uses files. Deliberately NOT the
-%% translated prose used in the limits panel — a heading over a block of data
-%% should name the stream the way the judge does.
+%% Vietnamese prose for the standard streams, matching the limits panel; a
+%% named file is shown verbatim, because it is a filename the contestant has
+%% to type exactly.
 %% ---------------------------------------------------------------------------
 
-% \ifdefempty rather than \ifblank — see the note in vnolymp-problem.def.
 \newcommand{\vnolymp@sampleinname}{%
-  \ifdefempty{\vnolymp@p@input}{\texttt{stdin}}{\texttt{\vnolymp@p@input}}%
+  \ifdefempty{\vnolymp@p@input}%
+    {\vnolymp@kw{value.stdin}}%
+    {\vnolymp@ioname{\vnolymp@p@input}}%
 }
 \newcommand{\vnolymp@sampleoutname}{%
-  \ifdefempty{\vnolymp@p@output}{\texttt{stdout}}{\texttt{\vnolymp@p@output}}%
+  \ifdefempty{\vnolymp@p@output}%
+    {\vnolymp@kw{value.stdout}}%
+    {\vnolymp@ioname{\vnolymp@p@output}}%
 }
+
+%% ---------------------------------------------------------------------------
+%% Geometry
+%%
+%% Widths are computed at USE time. \linewidth is still the document class
+%% default while the package is being read — geometry has not applied yet — so
+%% measuring at load time left the table far narrower than the text block.
+%% ---------------------------------------------------------------------------
+
+\newlength{\vnolymp@samplecol}
+\newlength{\vnolymp@numcol}
+\setlength{\vnolymp@numcol}{7mm}
+
+\newcommand{\vnolymp@setsamplecol}{%
+  \setlength{\vnolymp@samplecol}{0.5\linewidth}%
+  \addtolength{\vnolymp@samplecol}{-0.5\vnolymp@numcol}%
+  \addtolength{\vnolymp@samplecol}{-6.5mm}%
+}
+
+%% No padding above or below the data. \topsep and \partopsep are zeroed as
+%% well: a Verbatim opening a minipage contributes list glue of its own, which
+%% is what left a gap under the header rule even once the \vspace was removed.
+\newcommand{\vnolymp@samplecell}[1]{%
+  \begin{minipage}[t]{\vnolymp@samplecol}%
+    \setlength{\topsep}{0pt}%
+    \setlength{\partopsep}{0pt}%
+    \setlength{\parskip}{0pt}%
+    #1%
+  \end{minipage}%
+}
+
+\newcounter{vnolymp@samplerow}
 
 %% ---------------------------------------------------------------------------
 %% The example environment
+%%
+%% The table is indented by \vnolymp@numcol to reserve the strip the line
+%% numbers hang into. Zebra striping uses \rowcolor, which is safe now that
+%% there is no numbering column to tint.
 %% ---------------------------------------------------------------------------
 
-% \exmpfile{input-file}{output-file} — the Polygon path. A package export
-% ships sample data as files (example.01, example.01.a), so this reads them
-% rather than requiring them to be pasted into the statement.
-\newcommand{\exmpfile}[2]{%
-  \vnolymp@rendersample
-    {\vnolymp@sampleinname}{\VerbatimInput{#1}}%
-    {\vnolymp@sampleoutname}{\VerbatimInput{#2}}%
-}
-
-% \exmp{...}{...} — inline data, for hand-written statements. Verbatim, so
-% line breaks and spacing in the source are preserved exactly.
-\newenvironment{vnolymp@exmpenv}{}{}
-\newcommand{\exmp}[2]{%
-  \vnolymp@rendersample
-    {\vnolymp@sampleinname}{\begin{Verbatim}#1\end{Verbatim}}%
-    {\vnolymp@sampleoutname}{\begin{Verbatim}#2\end{Verbatim}}%
-}
-
 \newenvironment{example}[1][]{%
-  \par\nobreak
+  \par\addvspace{0.4\baselineskip}%
+  \begingroup
+  \setlength{\parskip}{0pt}%
+  \setlength{\tabcolsep}{3mm}%
+  \setcounter{vnolymp@samplerow}{0}%
+  \vnolymp@setsamplecol
+  \noindent\hspace*{\vnolymp@numcol}%
+  \begin{tabular}{|l|l|}
+    % \hhline, not \hline: the header row's \columncolor panels are drawn
+    % after the rules and paint straight over an \hline above them, so the
+    % table came out with no top edge at all. \hhline survives the overpaint.
+    \hhline{|-|-|}
+    % The tint goes in the column spec via \columncolor, not as a \cellcolor
+    % before \multicolumn — \multicolumn has to be the first token in its cell.
+    \multicolumn{1}{|>{\columncolor{vnolymp@hdr@in}}c|}%
+      {\vnolymp@uib\vnolymp@sampleinname} &
+    \multicolumn{1}{>{\columncolor{vnolymp@hdr@out}}c|}%
+      {\vnolymp@uib\vnolymp@sampleoutname}\\
+    \hline
 }{%
-  \par
+  \end{tabular}%
+  \endgroup
+  \par\addvspace{0.4\baselineskip}%
 }
 
-% examplewide — one sample stacked vertically rather than side by side, for
-% data too wide to sit in half the text block.
-\providecommand{\vnolymp@renderwidesample}[4]{%
-  \par\medskip\noindent
-  {\footnotesize\bfseries #1}\par\smallskip\hrule\smallskip #2%
-  \par\medskip\noindent
-  {\footnotesize\bfseries #3}\par\smallskip\hrule\smallskip #4%
-  \par\medskip
+\newcommand{\vnolymp@zebrarow}{%
+  \ifodd\value{vnolymp@samplerow}\else\rowcolor{vnolymp@zebra}\fi
 }
 
+\newcommand{\exmpfile}[2]{%
+  % \stepcounter must sit inside \noalign: a bare one opens the row's first
+  % cell, after which \rowcolor -- which is itself a \noalign -- is misplaced.
+  \noalign{\stepcounter{vnolymp@samplerow}}%
+  \vnolymp@zebrarow
+  \vnolymp@samplecell{\vnolymp@numberedinput{#1}} &
+  \vnolymp@samplecell{\VerbatimInput{#2}}\\
+  \hline
+}
+
+\newcommand{\exmp}[2]{%
+  % \stepcounter must sit inside \noalign: a bare one opens the row's first
+  % cell, after which \rowcolor -- which is itself a \noalign -- is misplaced.
+  \noalign{\stepcounter{vnolymp@samplerow}}%
+  \vnolymp@zebrarow
+  \vnolymp@samplecell{\begin{Verbatim}[numbers=left,numbersep=4.5mm]#1\end{Verbatim}} &
+  \vnolymp@samplecell{\begin{Verbatim}#2\end{Verbatim}}\\
+  \hline
+}
+
+%% examplewide — input and output stacked, for data too wide to halve.
 \newenvironment{examplewide}[1][]{%
-  \par\nobreak
+  \par\addvspace{0.4\baselineskip}%
+  \begingroup
+  \setlength{\parskip}{0pt}%
+  \setlength{\tabcolsep}{3mm}%
+  \vnolymp@setsamplecol
   \renewcommand{\exmpfile}[2]{%
-    \vnolymp@renderwidesample
-      {\vnolymp@sampleinname}{\VerbatimInput{##1}}%
-      {\vnolymp@sampleoutname}{\VerbatimInput{##2}}%
+    \noindent
+    \begin{tabular}{|l|}
+      \hline
+      \rowcolor{vnolymp@hdr@in}
+      \multicolumn{1}{|c|}{\vnolymp@uib\vnolymp@sampleinname}\\
+      \hline
+      \begin{minipage}[t]{\dimexpr\linewidth-8mm\relax}%
+        \setlength{\topsep}{0pt}\setlength{\partopsep}{0pt}%
+        \VerbatimInput{##1}%
+      \end{minipage}\\
+      \hline
+      \rowcolor{vnolymp@hdr@out}
+      \multicolumn{1}{|c|}{\vnolymp@uib\vnolymp@sampleoutname}\\
+      \hline
+      \begin{minipage}[t]{\dimexpr\linewidth-8mm\relax}%
+        \setlength{\topsep}{0pt}\setlength{\partopsep}{0pt}%
+        \VerbatimInput{##2}%
+      \end{minipage}\\
+      \hline
+    \end{tabular}%
+    \par
   }%
 }{%
-  \par
+  \endgroup
+  \par\addvspace{0.4\baselineskip}%
 }
 
 \endinput

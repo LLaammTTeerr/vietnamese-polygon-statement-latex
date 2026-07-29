@@ -28,8 +28,8 @@
   a4paper,
   top        = 24mm,
   bottom     = 22mm,
-  left       = 20mm,
-  right      = 20mm,
+  left       = 16mm,
+  right      = 16mm,
   headheight = 15pt,
   headsep    = 7mm,
   footskip   = 12mm,
@@ -38,18 +38,28 @@
 %% ---------------------------------------------------------------------------
 %% Fonts
 %%
-%% Source Serif / Sans / Code Pro. Chosen because all three cover the complete
-%% Vietnamese precomposed set with zero missing glyphs, verified by compiling
-%% all 134 characters and inspecting the log. XCharter, a strong candidate on
-%% other grounds, is missing the entire hook-above (dấu hỏi) tone class and
-%% renders it as tofu; DejaVu Sans Mono is missing 46 characters. See spec
-%% §3.1, and tests/cases/selftest-missing-glyph.
+%% Latin Modern for body, maths and monospace; Source Sans Bold for headings
+%% and chrome.
+%%
+%% Latin Modern is what pdfLaTeX — and therefore Polygon — gives you, so
+%% formulas look the way a competitive programmer expects. The sans headings
+%% are a deliberate mix: they carry the document's weight, which is why the
+%% body can stay at regular.
+%%
+%% Every face here covers the complete Vietnamese precomposed set with zero
+%% missing glyphs, verified by compiling all 134 characters and inspecting the
+%% log. XCharter, a strong candidate on other grounds, is missing the entire
+%% hook-above (dấu hỏi) tone class and renders it as tofu; DejaVu Sans Mono is
+%% missing 46 characters. See spec §3.1 and tests/cases/selftest-missing-glyph.
 %% ---------------------------------------------------------------------------
 
-\setmainfont{SourceSerifPro-Regular.otf}[
-  BoldFont       = SourceSerifPro-Bold.otf,
-  ItalicFont     = SourceSerifPro-RegularIt.otf,
-  BoldItalicFont = SourceSerifPro-BoldIt.otf,
+%% Regular, not Demi. Demi was tried to give the page more ink, but it made
+%% body text heavier than Latin Modern Math, so every formula read visibly
+%% lighter than the Vietnamese around it. Weight now comes from the headings.
+\setmainfont{lmroman10-regular.otf}[
+  BoldFont       = lmroman10-bold.otf,
+  ItalicFont     = lmroman10-italic.otf,
+  BoldItalicFont = lmroman10-bolditalic.otf,
   Ligatures      = TeX,
 ]
 
@@ -68,37 +78,36 @@
 %% fails the moment a statement quotes shell syntax, a C string literal, or
 %% Markdown. Prose-level quoting belongs in the surrounding serif, which does
 %% have them enabled, so `like this' still yields curly quotes in body text.
-\setmonofont{SourceCodePro-Regular.otf}[
-  BoldFont   = SourceCodePro-Semibold.otf,
-  ItalicFont = SourceCodePro-RegularIt.otf,
+\setmonofont{lmmono10-regular.otf}[
+  BoldFont   = lmmonolt10-bold.otf,
+  ItalicFont = lmmono10-italic.otf,
   Scale      = MatchLowercase,
 ]
 
 \newfontfamily\vnolymp@ui{SourceSansPro-Semibold.otf}[Ligatures = TeX]
+\newfontfamily\vnolymp@uib{SourceSansPro-Bold.otf}[Ligatures = TeX]
 
-%% Mathematics.
+%% Mathematics — Latin Modern Math, the companion to the body face.
 %%
-%% Source Serif has no matching math font, so STIX Two supplies the symbols
-%% while latin letters and digits are taken from the body font. Nearly all
-%% mathematics in a contest statement is variables, subscripts and powers of
-%% ten ($n$, $a_i$, $10^5$), and taking those glyphs from the body font makes
-%% inline maths sit in the prose instead of beside it.
-\setmathfont{STIXTwoMath-Regular.otf}
-\setmathfont{SourceSerifPro-Regular.otf}[range = {\mathup/{latin,Latin,num}}]
-\setmathfont{SourceSerifPro-RegularIt.otf}[range = {\mathit/{latin,Latin}}]
-\setmathfont{SourceSerifPro-Bold.otf}[range = {\mathbfup/{latin,Latin,num}}]
+%% An earlier draft paired Source Serif with STIX Two and overrode the latin
+%% and digit ranges to keep variables in the body font. Moving the body to
+%% Latin Modern makes all of that unnecessary: text and maths are one family
+%% again, so $n$ and $10^5$ match their surroundings with no range surgery.
+\setmathfont{latinmodern-math.otf}
 
 %% ---------------------------------------------------------------------------
 %% Colour
 %%
 %% One accent, and a print mode that replaces it with greys.
 %%
-%% #A8122C converts to 51/255 in greyscale and carries white text at 7.53:1,
+%% #0F4C81 converts to 66/255 in greyscale and carries white text at 8.9:1,
 %% comfortably past WCAG AA, so a photocopied booklet stays legible. Print mode
-%% exists anyway, for when the copier is worse than expected.
+%% exists anyway, for when the copier is worse than expected: it uses 70% black
+%% with white text, mirroring the colour bar rather than inverting to dark text
+%% on a light fill.
 %% ---------------------------------------------------------------------------
 
-\definecolor{vnolympAccent}{HTML}{A8122C}
+\definecolor{vnolympAccent}{HTML}{0F4C81}
 \definecolor{vnolympInk}{HTML}{1A1A1A}
 
 \ifvnolymp@color
@@ -111,9 +120,12 @@
   \colorlet{vnolymp@sample@bg}{vnolympAccent!5}
   \colorlet{vnolymp@sample@rule}{vnolympAccent!25}
   \colorlet{vnolymp@table@head}{vnolympAccent!12}
+  \colorlet{vnolymp@hdr@in}{vnolympAccent!22}
+  \colorlet{vnolymp@hdr@out}{vnolympAccent!10}
+  \colorlet{vnolymp@zebra}{vnolympAccent!5}
 \else
-  \colorlet{vnolymp@head@bg}{black!13}
-  \colorlet{vnolymp@head@fg}{black}
+  \colorlet{vnolymp@head@bg}{black!70}
+  \colorlet{vnolymp@head@fg}{white}
   \colorlet{vnolymp@panel@bg}{black!4}
   \colorlet{vnolymp@panel@rule}{black!25}
   \colorlet{vnolymp@panel@label}{black!55}
@@ -121,6 +133,9 @@
   \colorlet{vnolymp@sample@bg}{black!4}
   \colorlet{vnolymp@sample@rule}{black!25}
   \colorlet{vnolymp@table@head}{black!10}
+  \colorlet{vnolymp@hdr@in}{black!18}
+  \colorlet{vnolymp@hdr@out}{black!8}
+  \colorlet{vnolymp@zebra}{black!4}
 \fi
 
 \color{vnolympInk}
@@ -134,7 +149,7 @@
 %% ---------------------------------------------------------------------------
 
 \setlength{\parindent}{0pt}
-\setlength{\parskip}{0.65\baselineskip plus 0.2\baselineskip minus 0.1\baselineskip}
+\setlength{\parskip}{0.42\baselineskip plus 0.12\baselineskip minus 0.08\baselineskip}
 
 %% ---------------------------------------------------------------------------
 %% Problem header
@@ -151,7 +166,7 @@
     enlarge left by  = 0mm,
     width        = \linewidth,
   ]
-    \color{vnolymp@head@fg}\vnolymp@ui\large
+    \color{vnolymp@head@fg}\vnolymp@uib\huge
     \vnolymp@kw{word.problem}~#1. #2%
     \ifblank{#3}{}{\hfill #3~\vnolymp@kw{word.points}}%
   \end{tcolorbox}%
@@ -161,8 +176,9 @@
 %% ---------------------------------------------------------------------------
 %% Limits panel
 %%
-%% Label/value rows, one per supplied key. Labels in small sans caps, values in
-%% the body face so a filename in monospace stands out as a filename.
+%% Label/value rows, one per supplied key. Labels in small sans, values in the
+%% body face — including filenames, which were briefly set in monospace and
+%% read as a foreign object beside the prose values sharing their column.
 %% ---------------------------------------------------------------------------
 
 \renewcommand{\vnolymp@renderpanel}[1]{%
@@ -191,11 +207,13 @@
 %% ---------------------------------------------------------------------------
 
 \renewcommand{\vnolymp@sectionhead}[1]{%
-  \par\addvspace{0.9\baselineskip}%
+  % More space above a heading than below it, so a section reads as
+  % attached to its own body rather than floating between two.
+  \par\addvspace{0.95\baselineskip}%
   \noindent
-  {\color{vnolymp@mark}\rule[-0.5mm]{1.1mm}{3.6mm}}\hspace{1.5mm}%
-  {\vnolymp@ui\large #1}%
-  \par\nopagebreak\addvspace{0.2\baselineskip}%
+  {\color{vnolymp@mark}\rule[-1.1mm]{1.7mm}{6.0mm}}\hspace{1.5mm}%
+  {\vnolymp@uib\LARGE #1}%
+  \par\nopagebreak\addvspace{0.05\baselineskip}%
 }
 
 %% ---------------------------------------------------------------------------
@@ -217,69 +235,20 @@
   ]
     \setlength{\parskip}{0pt}%
     \renewcommand{\arraystretch}{1.35}%
-    \begin{tabularx}{\linewidth}{@{\hspace{3mm}}c@{\hspace{4mm}}r@{\hspace{5mm}}X@{\hspace{3mm}}}
+    % Inter-column space comes from \tabcolsep, NOT from @{\hspace{...}}.
+    % \rowcolor fills cells, and an @{} separator belongs to no cell, so it
+    % stayed white -- the header tint broke into blocks with gaps between
+    % the column names.
+    \setlength{\tabcolsep}{3mm}%
+    \begin{tabularx}{\linewidth}{c c X}
       \rowcolor{vnolymp@table@head}
-      \vnolymp@ui\footnotesize\vnolymp@kw{table.subtask} &
-      \vnolymp@ui\footnotesize\vnolymp@kw{table.points} &
-      \vnolymp@ui\footnotesize\vnolymp@kw{table.constraints}\\
+      \vnolymp@uib\footnotesize\vnolymp@kw{table.subtask} &
+      \vnolymp@uib\footnotesize\vnolymp@kw{table.points} &
+      \vnolymp@uib\footnotesize\vnolymp@kw{table.constraints}\\
       #1
     \end{tabularx}%
   \end{tcolorbox}%
   \par
-}
-
-%% ---------------------------------------------------------------------------
-%% Sample tests
-%% ---------------------------------------------------------------------------
-
-% The group name carries a per-pair counter. `equal height group` is scoped to
-% the whole document, so a single shared name made every sample box in the
-% booklet as tall as the tallest one anywhere in it — a two-line sample beside
-% a six-line one in a different problem came out six lines tall.
-\newcounter{vnolympsamplepair}
-\newtcolorbox{vnolymp@samplebox}[1]{
-  equal height group = vnolymp@s\arabic{vnolympsamplepair},
-  colback   = vnolymp@sample@bg,
-  colframe  = vnolymp@sample@rule,
-  sharp corners,
-  boxrule   = 0.4pt,
-  left      = 2.5mm, right = 2.5mm,
-  top       = 1.5mm, bottom = 1.5mm,
-  title     = {\vnolymp@ui\footnotesize #1},
-  coltitle  = vnolymp@head@fg,
-  colbacktitle = vnolymp@head@bg,
-  fonttitle = \vnolymp@ui\footnotesize,
-  toptitle  = 0.8mm, bottomtitle = 0.8mm,
-  lefttitle = 2.5mm,
-}
-
-% \parskip must be zeroed OUTSIDE the minipages, not inside them. Set inside,
-% the document's paragraph skip has already been contributed at the top of the
-% first box, so the two boxes start at different heights and the pair sits
-% visibly askew.
-\renewcommand{\vnolymp@rendersample}[4]{%
-  \par\addvspace{0.4\baselineskip}%
-  \stepcounter{vnolympsamplepair}%
-  \begingroup
-  \setlength{\parskip}{0pt}%
-  \noindent
-  \begin{minipage}[t]{0.485\linewidth}
-    \begin{vnolymp@samplebox}{#1}#2\end{vnolymp@samplebox}
-  \end{minipage}\hfill
-  \begin{minipage}[t]{0.485\linewidth}
-    \begin{vnolymp@samplebox}{#3}#4\end{vnolymp@samplebox}
-  \end{minipage}%
-  \endgroup
-  \par\addvspace{0.4\baselineskip}%
-}
-
-\renewcommand{\vnolymp@renderwidesample}[4]{%
-  \par\addvspace{0.4\baselineskip}%
-  \setlength{\parskip}{0pt}%
-  \begin{vnolymp@samplebox}{#1}#2\end{vnolymp@samplebox}
-  \par\addvspace{0.2\baselineskip}%
-  \begin{vnolymp@samplebox}{#3}#4\end{vnolymp@samplebox}
-  \par\addvspace{0.4\baselineskip}%
 }
 
 %% ---------------------------------------------------------------------------

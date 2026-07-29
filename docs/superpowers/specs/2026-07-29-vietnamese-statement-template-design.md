@@ -107,11 +107,11 @@ Settled with the author; recorded here so they are not relitigated.
 |---|---|---|
 | Engine | LuaLaTeX | Best `fontspec` and `microtype` support. No requirement favours XeTeX. |
 | Build location | Local only | Unlocks OpenType fonts and `tcolorbox`. |
-| Body font | Source Serif Pro | Verified complete Vietnamese coverage; see §3.1. |
-| Heading/UI font | Source Sans Pro | Same superfamily, verified complete. |
-| Sample font | Source Code Pro | Same superfamily, verified complete. |
-| Math font | STIX Two Math, Latin/digit ranges overridden to Source Serif | See §7.2. |
-| Accent | `#A8122C` | Author's choice; 7.53:1 white-text contrast, 51/255 grayscale. |
+| Body font | Latin Modern Roman | Author's choice: the maths Polygon produces. Verified complete Vietnamese coverage; see §3.1. |
+| Heading/UI font | Source Sans Pro Bold | Carries the document's weight, letting the body stay regular. |
+| Sample font | Latin Modern Mono | Same family as the body. |
+| Math font | Latin Modern Math | Companion to the body face; no range surgery needed. |
+| Accent | `#0F4C81` | Author's choice; 8.9:1 white-text contrast, 66/255 greyscale. |
 | Paper | A4, 11 pt | The two current entry points disagree (12 pt vs 11 pt); 11 pt chosen. |
 | Terminology | VOI / national-olympiad style | Author's choice; see §6. |
 | Package name | `vnolymp` | `olymp.sty` retained as a compatibility shim. |
@@ -125,9 +125,11 @@ inspected for missing glyphs.
 
 | Font | Missing glyphs | Verdict |
 |---|---|---|
-| Source Serif Pro | 0 | Selected (body) |
-| Source Sans Pro | 0 | Selected (headings/UI) |
-| Source Code Pro | 0 | Selected (samples) |
+| Latin Modern Roman | 0 | **Selected** (body, samples, maths) |
+| Source Sans Pro | 0 | **Selected** (headings/UI) |
+| Latin Modern Roman Demi | 0 | Tried as a heavier body, rejected — see §7.2 |
+| Source Serif Pro | 0 | Viable; was the body in an earlier draft |
+| Source Code Pro | 0 | Viable |
 | Libertinus Serif | 0 | Viable alternative |
 | TeX Gyre Pagella | 0 | Viable alternative |
 | Noto Serif | 0 | Viable alternative |
@@ -362,6 +364,34 @@ math      STIX Two Math, with the latin/Latin/num ranges overridden
           to Source Serif Pro via unicode-math's range= mechanism
 ```
 
+### 7.4 Sample-table line numbers
+
+fvextra places the numbers itself; a `numbersep` wider than `\tabcolsep`
+pushes them past the table's left border, and the table is indented to reserve
+that strip. Alignment is therefore exact by construction and cannot drift if
+the font size or leading changes.
+
+Two other approaches were tried and rejected, both worth recording so they are
+not retried:
+
+1. Typeset the input into a `\sbox` to learn its line count from
+   `FancyVerbLine`, then emit a numbering column. The count was correct but
+   `\VerbatimInput` does not survive `\sbox`, and the input column rendered
+   **empty**.
+2. Count the file's lines by reading it directly, then emit a numbering column.
+   The count was exact, but the numbers sat half a line low: a `[t]`-aligned
+   `minipage` and a `fancyvrb` block do not put their first baselines in the
+   same place.
+
+Two further `colortbl` interactions are load-bearing:
+
+- The header row's `\columncolor` panels are drawn *after* the rules and paint
+  over an `\hline` above them, leaving the table with **no top edge**. The top
+  rule therefore uses `\hhline`.
+- `\rowcolor` is a `\noalign` and must begin a row, so the zebra counter is
+  stepped inside `\noalign{...}`; a bare `\stepcounter` opens the first cell
+  and misplaces it.
+
 ### 7.2.1 TeX ligatures — a migration hazard
 
 `fontspec` does **not** apply TeX's input ligatures by default. Verified under
@@ -405,10 +435,12 @@ Libertinus Math.
 
 ### 7.3 Components
 
-- **Problem header** — full-width `tcolorbox`, `#A8122C` fill, white Source Sans
-  semibold, `Bài N. Tên bài` flush left, points flush right. In `print` mode:
-  13 % black fill, black text. (The mockup that informed this design showed a
-  lettered `A.` index; the author subsequently chose numbering — see §5.1.)
+- **Problem header** — full-width `tcolorbox`, `#0F4C81` fill, white Source Sans
+  Bold at `\huge`, `Bài N. Tên bài` flush left, points flush right. In `print`
+  mode: 70 % black with white text, mirroring the colour bar rather than
+  inverting to dark text on a light fill. (The mockup that informed this design
+  showed a lettered `A.` index; the author subsequently chose numbering — see
+  §5.1.)
 - **Limits panel** — tinted box beneath the header, a `tabular` of label/value
   rows, one row per supplied key, ordered time, memory, input, output, author,
   origin. Alignment must be tabular, not glue: an early specimen used `\hfill`
@@ -416,10 +448,15 @@ Libertinus Math.
   (An earlier draft specified a 2×2 grid. The panel preview the author later
   approved is the vertical list described here, which also degrades better when
   only some keys are supplied.)
-- **Section headings** — accent-coloured left bar plus Source Sans semibold, no
-  numbering.
-- **Samples** — `tcolorbox` with tinted title rows, **with line wrapping
-  enabled**, fixing the silent overflow described in §1.2.
+- **Section headings** — accent-coloured left bar plus Source Sans Bold at
+  `\LARGE`, no numbering. Space above a heading (0.95 line) is far larger than
+  below it (0.05), so a heading reads as attached to its own body.
+- **Samples** — a bordered two-column table, one header row naming the streams
+  and one ruled row per sample, **with line wrapping enabled**, fixing the
+  silent overflow described in §1.2. Header cells carry two shades of the
+  accent; sample rows alternate tinted and white. Line numbers sit **outside**
+  the frame, to its left, under no heading, and number the input lines. See
+  §7.4 for why they are placed the way they are.
 - **Chú ý** — left-rule callout block.
 - **Subtasks** — table with alternating tinted rows.
 - **Booklet** — cover page carrying contest name, location, date and an overview

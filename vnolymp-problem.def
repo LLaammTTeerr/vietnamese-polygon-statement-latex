@@ -83,7 +83,9 @@
 \newcommand{\vnolymp@ioname}[1]{%
   \IfStrEq{#1}{stdin}{\vnolymp@kw{value.stdin}}{%
     \IfStrEq{#1}{stdout}{\vnolymp@kw{value.stdout}}{%
-      \texttt{#1}%
+      % A filename is shown in the body face, not monospace. Set in \texttt it
+      % read as a foreign object beside the prose values sharing its column.
+      #1%
     }%
   }%
 }
