@@ -35,6 +35,32 @@ problem-overview table both come from the `.aux` file written by the previous
 run. A single pass produces a document with `??` in the footer and an **empty
 overview table, with no error**. `latexmk` handles this automatically.
 
+### Building from a problem directory
+
+A statement normally lives in its own problem directory, not in this
+repository. Point `TEXINPUTS` at a checkout so the engine can find
+`vnolymp.sty` and its modules:
+
+```
+export TEXINPUTS=".:/path/to/vietnamese-polygon-statement-latex:"
+latexmk -lualatex -interaction=nonstopmode mystatement.tex
+```
+
+**Keep `.` first, and do not name your own file `problem.tex`.** `TEXINPUTS`
+makes every file in the checkout visible to your build, and the checkout
+contains `problem.tex` — the Freemarker template Polygon requires under that
+exact name. Give your statement the same name and the lookup can resolve to
+the template instead of your file. LuaLaTeX then compiles a document you did
+not write and reports
+
+```
+! LaTeX Error: Environment problem undefined.
+```
+
+with a line number pointing into a file you have never opened. Nothing in the
+message names the real cause, so the failure is expensive to diagnose the
+first time.
+
 ### Package options
 
 | Option | Values | Default | Effect |
